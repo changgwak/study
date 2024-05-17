@@ -1,0 +1,13 @@
+https://sfriederichs.github.io/how-to/python3/svn/2020/07/13/SVN-with-Python.html
+
+https://github.com/repwolfe/svn2ftp
+
+
+
+→ 뭔가 직접 파일 업로드는 없어서 repo에 있는 파일 하나 복사 후 그걸 수정(질문)해서 commit 해서 파일 업로드 하는느낌? 그러면 그냥 용량 가장 작은거 하나 수정하던가 default_file 용량 작은거 하나 둬서 그걸로 계속 해야될듯?
+
+pip install svn  (pip install pysvn 아님)
+
+https://github.com/dsoprea/PySvn.git
+
+https://pysvn.sourceforge.io/
