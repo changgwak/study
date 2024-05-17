@@ -13,5 +13,5 @@ paddleocr - python 3.10이하에서 호환?
 
 
 1차 검토 결과: 인식률이 별로라서 그냥 image object detection 방식이 오히려 더 나을듯. 
-차세대MCS는 webUI로 전환되므로 selenium과 window object + image object detection 방식으로 자동화하는게 나을듯 
+차세대는 webUI이므로 selenium과 window object + image object detection 방식으로 자동화하는게 나을듯 
 
