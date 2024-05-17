@@ -1,0 +1,61 @@
+[[venv]]
+Official: https://docs.python.org/ko/3/library/venv.html
+가상환경 비교: https://homubee.tistory.com/38
+
+1. 가상환경 생성
+python -m venv 가상환경이름
+
+2. 가상환경 활성화
+source 가상환경이름/Scripts/activate
+
+3. 필요한 패키지 설치
+pip install [packages]
+
+4. test.py 생성후 테스트
+python test.py
+
+5. 비활성화
+deactivate
+
+6. 삭제
+해당 폴더 삭제
+
+reference : https://homubee.tistory.com/38
+
+
+
+
+
+[[virtualenv]]
+[[virtualenv]]
+Official: https://virtualenv.pypa.io/en/latest/
+First, open a terminal and install pip and virtualenv if you haven't already done so. You can do this by running the following command:
+sudo apt-get install python3-pip
+pip3 install virtualenv
+2. Next, navigate to the directory where you want to create your new project and run the following command:
+
+mkdir my_project
+cd my_project
+3. Now you can create a virtual environment in this directory. The following command will create a new virtual environment called 'venv':
+
+virtualenv venv
+4. To start using this virtual environment, you need to activate it. You can do this by running the following command:
+
+source venv/bin/activate
+5. Now your virtual environment is active, you can install any Python packages you need for your project using pip. These will only be installed in your virtual environment, not globally on your system. For example, to install Django, you would run:
+
+pip install django
+6. You can now start developing your Python project. Any Python packages you install while the virtual environment is active will be installed in the virtual environment, not globally on your system.
+
+7. When you're done working on your project for now, you can deactivate the virtual environment by running the following command:
+
+deactivate
+8. The next time you want to work on your project, just navigate to your project directory and activate the virtual environment again with the 'source' command from step 4.
+
+
+
+8번은 안 하고 그냥 terminal close 하면됨.
+
+
+
+참고: https://jaemunbro.medium.com/python-virtualenv-venv-%EC%84%A4%EC%A0%95-aaf0e7c2d24e
