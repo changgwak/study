@@ -1,1 +1,28 @@
-test
+하이퍼사이언스 :
+
+하이퍼사이언스 Enterprise AI 플랫폼 : 비정형 문서 처리 자동화 혁신의 정점
+하이퍼사이언스는 비정형 문서와 필기체 인식 자동화에서 뛰어난 글로벌 인텔리전트 문서 처리(IDP) 분야의 리더로 성장하고 있습니다. 엔터프라이즈 AI 플랫폼으로서, 챗 GPT 연동과 같은 다양한 비즈니스 프로세스 제작을 가능하게 하는 커스텀 플로우를 제공합니다. 아직 빙산의 일각 밑의 비정형 데이터로 숨어있는 80% 업무를 자동화하는 AI 플랫폼으로서의 역할을 다양한 유즈 케이스 데모를 통해 증명할 것입니다.
+
+IDP (Intelligent Document Processing) , https://github.com/tstanislawek/awesome-document-understanding
+
+
+
+사람과 숲 :
+
+한국어 오픈 LLM과 기업 자동화 활용 방안사람과숲정철현 CTO
+
+
+
+DPO,.. 두 가지 SOLAR 기반 모델을 Merger(Slerp) 하고 DPO 를 적용, 파인튜닝해 개발한 모델., 
+
+https://arxiv.org/abs/2305.18290
+
+https://kyujinpy.tistory.com/122
+
+
+
+Copilot: 
+
+생성형 인공지능과 Copilot으로 완성해 보는 업무 자동화
+LLM이 적용된 클라우드 기반의 서비스와 RPA 솔루션 등을 이용해서 단순 반복적인 업무와 자주 사용되는 문서 작업등을 효율적으로 개선하는 방법 등을 고민해 봅니다. 특히 Microsoft의 Copilot이 적용된 솔루션을 기반으로 작업하는 내용을 다룹니다.
+Hello AI김영욱 대표
