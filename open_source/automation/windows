@@ -36,7 +36,14 @@ Python Virtual Desktop Accessor
 
 .. https://timgolden.me.uk/pywin32-docs/contents.html
 
+.. 최신 window 자체 app들은 sendmessage/postmessage 안 먹히는듯.
 
+refer
+https://gall.dcinside.com/mgallery/board/view/?id=umamusu&no=59245
+https://github.com/MandarGogate/AM-AIR-MOUSE/blob/b8ffb7665cd3147c1e4d3913035600a1d8c2a6bc/Mouse-Driver.py
+https://wikidocs.net/157024
+https://www.cnblogs.com/zyip/p/17184391.html
+https://qna.habr.com/answer?answer_id=1687411#comments_list_1687411
 
 
 
