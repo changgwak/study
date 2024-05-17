@@ -1,1 +1,17 @@
+[[8가지 OCR 비교]]
+
+https://sooeun67.github.io/data%20science/ocr-comparison/
+
+
+[[paddleocr]]
+https://yunwoong.tistory.com/249
+
+paddleocr - python 3.10이하에서 호환?
+
+[[Tesseract]]
+
+
+
+1차 검토 결과: 인식률이 별로라서 그냥 image object detection 방식이 오히려 더 나을듯. 
+차세대MCS는 webUI로 전환되므로 selenium과 window object + image object detection 방식으로 자동화하는게 나을듯 
 
