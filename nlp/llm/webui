@@ -1,0 +1,24 @@
+[[open-webui]]
+
+https://github.com/open-webui/open-webui
+
+유명한건데 docker 설치 단계
+
+
+
+[[chrome extestions]]
+
+https://github.com/n4ze3m/page-assist
+
+local로 바로 테스트하긴 괜찮은듯
+
+[[streamlit]]
+Streamlit documentation
+
+
+
+
+
+ubuntu 에서 ollama webui 가능 : https://github.com/sunny2309/streamlit_chatbot.git
+
+window에서는 안됨.
