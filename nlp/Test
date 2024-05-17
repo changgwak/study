@@ -1,1 +1,32 @@
-test
+[[[LLM]]]
+[[Ollama]] 
+
+
+
+[[unsloth]]
+
+https://github.com/unslothai/unsloth
+
+
+
+[[secret_llama]]
+
+https://github.com/abi/secret-llama
+
+.. web 기반 local llm인듯?
+
+
+
+[[cria]]
+
+https://github.com/leftmove/cria
+
+Cria is a library for programmatically running Large Language Models through Python. → 그냥 pre trained model 빠른 test 용으로 쓸수있을듯
+
+
+
+
+
+[[혼공용]]
+
+https://github.com/teddylee777/langserve_ollama
