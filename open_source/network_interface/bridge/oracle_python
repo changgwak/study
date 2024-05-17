@@ -1,0 +1,8 @@
+[[SQLAlchemy]]
+가장 대중적인 것. 
+https://www.sqlalchemy.org/
+
+
+[[oracledb]]
+오라클 공식 python library
+https://github.com/oracle/python-oracledb
