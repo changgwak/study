@@ -1,0 +1,6 @@
+
+[[pyvmomi]]
+
+https://github.com/vmware/pyvmomi.git
+
+→ 방화벽때문에 어차피 connect 안됨 (local pc - vmware)
