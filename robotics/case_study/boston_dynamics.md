@@ -1,5 +1,5 @@
 
-[![Video Label](http://img.youtube.com/vi/29ECwExc-_M/0.jpg)](https://youtu.be/29ECwExc-_M)
+[![Video Label](http://img.youtube.com/vi/29ECwExc-_M/1.jpg)](https://youtu.be/29ECwExc-_M)
 
 
 
