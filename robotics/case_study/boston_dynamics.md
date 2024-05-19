@@ -5,7 +5,7 @@
 
 
 <a href="https://www.youtube.com/watch?v=29ECwExc-_M">
-    <img src="http://img.youtube.com/vi/29ECwExc-_M/maxresdefault.jpg" width="500" alt="YouTube Video Link"/>
+    <img src="http://img.youtube.com/vi/29ECwExc-_M/mqdefault.jpg" width="500" alt="YouTube Video Link"/>
 </a>
 
 
