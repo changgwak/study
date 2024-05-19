@@ -3,10 +3,12 @@
 
 
 
-<a href="https://www.youtube.com/watch?v=29ECwExc-_M">
-    <img src="http://img.youtube.com/vi/29ECwExc-_M/2.jpg" width="500"/>
-</a>
 
+```
+<a href="https://www.youtube.com/watch?v=29ECwExc-_M">
+    <img src="http://img.youtube.com/vi/29ECwExc-_M/0.jpg" width="500"/>
+</a>
+```
 
 
 ``` [![Video Label](http://img.youtube.com/vi/29ECwExc-_M/1.jpg)](https://youtu.be/29ECwExc-_M) ```
