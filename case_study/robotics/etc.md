@@ -13,4 +13,6 @@ https://pschaldenbrand.github.io/cofrida/
 
 [![Video Label](http://img.youtube.com/vi/_daAF8c5uCAACIBb/0.jpg)](https://youtu.be/_daAF8c5uCAACIBb)
 
-```[![Video Label](http://img.youtube.com/vi/29ECwExc-_M/0.jpg)](https://youtu.be/29ECwExc-_M)```
+```
+[![Video Label](http://img.youtube.com/vi/29ECwExc-_M/0.jpg)](https://youtu.be/29ECwExc-_M)
+```
