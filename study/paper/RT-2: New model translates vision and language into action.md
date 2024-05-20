@@ -3,3 +3,7 @@
 
 
 [https://bequiet-log.vercel.app/rt2](https://bequiet-log.vercel.app/rt2)
+
+```
+[desired name](url)
+```
