@@ -1,7 +1,7 @@
 
 [![Video Label](http://img.youtube.com/vi/29ECwExc-_M/0.jpg)](https://youtu.be/29ECwExc-_M)
 
-
+{% include youtube.html id="29ECwExc-_M" %}
 
 {% include bd1.html id="29ECwExc-_M" provider="youtube" %}
 
