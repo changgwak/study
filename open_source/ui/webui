@@ -4,6 +4,10 @@ https://github.com/zauberzeug/nicegui.git
 ros2 연동갸능
 
 streamlit
+https://github.com/streamlit/streamlit.git
+
+ollama webu 가능(ubuntu 용, window는 안됨) : https://github.com/sunny2309/streamlit_chatbot.git
+
 
 gradio
 https://github.com/gradio-app/gradio.git
