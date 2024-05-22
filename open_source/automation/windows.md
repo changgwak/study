@@ -33,6 +33,10 @@ https://github.com/pywinauto/pywinauto/issues/1064
 [what is visiable_onley=False]
 https://github.com/pywinauto/pywinauto/issues/817
 
+
+[to read later when chance]
+https://github.com/pywinauto/pywinauto/issues/556
+
 ########################################################
 [[pyvda]]
 
