@@ -125,6 +125,7 @@ Power automate, autoit v3 -> Tool
 차세대 WebUI는 selenium + window object 기반으로 하고 vmware 나 그 이외의 것들 다 image object detection 기반으로 하는게 나을듯?
 
 #########################################################################
+""" 
 ## window focus 없이 type 하는방법을 찾음. window 최소화 되어있어도 잘 작동.
 ## 문제는 child를 class_name으로밖에 못 찾을듯. 
 ## class_name 없는 놈은 uiatomation으로 child 찾고 handle 있으면(Edit 은 handle 있는듯?) SendMessage 하기.(최소화에서도 작동하는듯) 
@@ -135,6 +136,7 @@ Power automate, autoit v3 -> Tool
 ## automation.py -r -d 1 -t 0, print desktop(the root of control tree) and it's children(top level windows)
 ## windos 기본 프로그램을 uiautomation/pywinauto로 hwnd 얻어서 enter 혹은 click 보낼수 있는지 확인 필요.
 # click vs clcik_at 차이?
+""" 
 
 """ 
 [tree 구조 및 hwnd 확인 tool]
