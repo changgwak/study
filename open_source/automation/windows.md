@@ -30,15 +30,15 @@ edit.click_input()
 ```
 
 [using descendants(depth=1) to find child things]  
-https://github.com/pywinauto/pywinauto/issues/1246
-https://github.com/pywinauto/pywinauto/issues/1064
+.. https://github.com/pywinauto/pywinauto/issues/1246
+.. https://github.com/pywinauto/pywinauto/issues/1064
 
 [what is visiable_onley=False]  
-https://github.com/pywinauto/pywinauto/issues/817
+.. https://github.com/pywinauto/pywinauto/issues/817
 
 
 [to read later when chance]
-https://github.com/pywinauto/pywinauto/issues/556
+.. https://github.com/pywinauto/pywinauto/issues/556
   
 ########################################################
 
@@ -51,12 +51,12 @@ https://github.com/pywinauto/pywinauto/issues/556
 .. 최신 window 자체 app들은 sendmessage/postmessage 안 먹히는듯.
   
 refer  
-https://gall.dcinside.com/mgallery/board/view/?id=umamusu&no=59245
-https://github.com/MandarGogate/AM-AIR-MOUSE/blob/b8ffb7665cd3147c1e4d3913035600a1d8c2a6bc/Mouse-Driver.py
-https://wikidocs.net/157024
-https://www.cnblogs.com/zyip/p/17184391.html
-https://qna.habr.com/answer?answer_id=1687411#comments_list_1687411
-https://wiki.changwoo.pe.kr/project:peekwindow
+.. https://gall.dcinside.com/mgallery/board/view/?id=umamusu&no=59245
+.. https://github.com/MandarGogate/AM-AIR-MOUSE/blob/b8ffb7665cd3147c1e4d3913035600a1d8c2a6bc/Mouse-Driver.py
+.. https://wikidocs.net/157024
+.. https://www.cnblogs.com/zyip/p/17184391.html
+.. https://qna.habr.com/answer?answer_id=1687411#comments_list_1687411
+.. https://wiki.changwoo.pe.kr/project:peekwindow
   
 
 [[pywin32 와 pyautogui DPI 차이]]  
