@@ -125,6 +125,7 @@ Power automate, autoit v3 -> Tool
 차세대 WebUI는 selenium + window object 기반으로 하고 vmware 나 그 이외의 것들 다 image object detection 기반으로 하는게 나을듯?
 
 #########################################################################
+
 """ 
 window focus 없이 type 하는방법을 찾음. window 최소화 되어있어도 잘 작동.  
 문제는 child를 class_name으로밖에 못 찾을듯.   
