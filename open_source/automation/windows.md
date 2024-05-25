@@ -153,15 +153,15 @@ background: win32gui.PostMessage 이용. windows 기본 프로그램은 안되�
 [background종류]  
 when window minimize : 해당 element의 hwnd을 알고 있는 경우. 해당 element click.  
 *click  
-'''
+```
 win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, 0)
 win32gui.PostMessage(hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, 0)
-'''
+```
 *enter
-'''
+```
 win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
 win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
-'''
+```
 when not minimize and behind other window : 해당 window 내 상대좌표로 click event. parent window hwnd만 알고있고 child는 rectangle만 알고있는 상황. window 기본 프로그램중에 안 먹히는것도 있음.  
 
 when not minimize and frontmost : 스크린의 절대좌표 기준으로 click event. 해당 window는 항상 맨 앞 window 여야됨.  
