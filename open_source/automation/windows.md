@@ -37,7 +37,7 @@ edit.click_input()
 .. https://github.com/pywinauto/pywinauto/issues/817  
 
 
-[to read later when chance]
+[to read later when chance]  
 .. https://github.com/pywinauto/pywinauto/issues/556  
   
 ########################################################
