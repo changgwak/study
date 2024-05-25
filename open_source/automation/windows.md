@@ -60,6 +60,16 @@ refer
   
 
 [SendMessage(hWndButton1, BM_CLICK, 0, 0);]  
+```
+HWND hWndMsgBox = NULL; 
+HWND hWndButton1 = NULL, hWndButton2 = NULL; 
+
+hWndMsgBox = FindWindow("#32770", NULL); 
+hWndButton1 = FindWindowEx(hWndMsgBox, NULL, "Button", "확인"); 
+hWndButton2 = FindWindowEx(hWndMsgBox, hWndButton1, "Button", "취소"); 
+
+SendMessage(hWndButton1, BM_CLICK, 0, 0); 
+```
 https://blog.saja92.net/m/entry/FindWindowEx-%ED%95%A8%EC%88%98%EB%A1%9C-%EC%B0%BE%EC%9D%80-%EB%B2%84%ED%8A%BC%EC%97%90-%ED%81%B4%EB%A6%AD-%EB%A9%94%EC%84%B8%EC%A7%80-%EB%B3%B4%EB%82%B4%EA%B8%B0
 
 [[pywin32 와 pyautogui DPI 차이]]  
