@@ -22,6 +22,7 @@ pywinauto는 윈도우 소프트웨어의 셀레니움(질문)
 : https://github.com/pywinauto/pywinauto/issues/519
 
 [click event with the child window focus]
+
 app = Application(backend="uia").connect(title="통합 문서1 - Excel")
 dlg = app.window(title='통합 문서1 - Excel')
 edit = dlg.child_window(auto_id='TabInsert')
