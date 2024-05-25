@@ -18,7 +18,8 @@ pywinauto는 윈도우 소프트웨어의 셀레니움(질문)
 
 
 
-refer : https://github.com/pywinauto/pywinauto/issues/519
+[refer] 
+: https://github.com/pywinauto/pywinauto/issues/519
 
 [click event with the child window focus]
 app = Application(backend="uia").connect(title="통합 문서1 - Excel")
@@ -38,13 +39,6 @@ https://github.com/pywinauto/pywinauto/issues/817
 https://github.com/pywinauto/pywinauto/issues/556
 
 ########################################################
-[[pyvda]]
-
-https://github.com/mrob95/pyvda
-
-Python Virtual Desktop Accessor
-
-
 
 [[win32gui, win32api, win32con]]
 
@@ -71,7 +65,7 @@ pyautogui: DPI 고려함
 
 https://github.com/asweigart/pyautogui/issues/697
 
-==========================================================
+##########################################################
 
 [[uiautomation]]
 
@@ -84,7 +78,14 @@ pip install uiautomation
 
 → 간단 사용 결과: 마우스 클릭은 마우스 커서 실제 움직임 발생. 
 
+##########################################################
+[[pyvda]]
 
+https://github.com/mrob95/pyvda
+
+Python Virtual Desktop Accessor
+
+#########################################################
 
 [[RPA-Python]]
 
