@@ -126,16 +126,16 @@ Power automate, autoit v3 -> Tool
 
 #########################################################################
 """ 
-## window focus 없이 type 하는방법을 찾음. window 최소화 되어있어도 잘 작동.
-## 문제는 child를 class_name으로밖에 못 찾을듯. 
-## class_name 없는 놈은 uiatomation으로 child 찾고 handle 있으면(Edit 은 handle 있는듯?) SendMessage 하기.(최소화에서도 작동하는듯) 
-## 만약 handle 없으면(click 같은거나..) rectangle 상대 좌표 기반으로 click(좌표 기반은 window 최소화하면 작동 안됨.)
-## pywin32 방식의 단점이 old app은 elements를 잘 찾는데 newer app의 element는 못찾아서 uiautomation으로 찾아야되는듯.
-## test5.py가 최종이고 test3.py 도 참고 할만함.
-## automation.py -t 0 -n, print current active window's controls, show fullname
-## automation.py -r -d 1 -t 0, print desktop(the root of control tree) and it's children(top level windows)
-## windos 기본 프로그램을 uiautomation/pywinauto로 hwnd 얻어서 enter 혹은 click 보낼수 있는지 확인 필요.
-# click vs clcik_at 차이?
+window focus 없이 type 하는방법을 찾음. window 최소화 되어있어도 잘 작동.
+문제는 child를 class_name으로밖에 못 찾을듯. 
+class_name 없는 놈은 uiatomation으로 child 찾고 handle 있으면(Edit 은 handle 있는듯?) SendMessage 하기.(최소화에서도 작동하는듯) 
+만약 handle 없으면(click 같은거나..) rectangle 상대 좌표 기반으로 click(좌표 기반은 window 최소화하면 작동 안됨.)
+pywin32 방식의 단점이 old app은 elements를 잘 찾는데 newer app의 element는 못찾아서 uiautomation으로 찾아야되는듯.
+test5.py가 최종이고 test3.py 도 참고 할만함.
+automation.py -t 0 -n, print current active window's controls, show fullname
+automation.py -r -d 1 -t 0, print desktop(the root of control tree) and it's children(top level windows)
+windos 기본 프로그램을 uiautomation/pywinauto로 hwnd 얻어서 enter 혹은 click 보낼수 있는지 확인 필요.
+click vs clcik_at 차이?
 """ 
 
 """ 
