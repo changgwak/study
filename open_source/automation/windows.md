@@ -123,3 +123,44 @@ Power automate, autoit v3 -> Tool
 
 1차 검토 결과: 
 차세대 WebUI는 selenium + window object 기반으로 하고 vmware 나 그 이외의 것들 다 image object detection 기반으로 하는게 나을듯?
+
+#########################################################################
+## window focus 없이 type 하는방법을 찾음. window 최소화 되어있어도 잘 작동.
+## 문제는 child를 class_name으로밖에 못 찾을듯. 
+## class_name 없는 놈은 uiatomation으로 child 찾고 handle 있으면(Edit 은 handle 있는듯?) SendMessage 하기.(최소화에서도 작동하는듯) 
+## 만약 handle 없으면(click 같은거나..) rectangle 상대 좌표 기반으로 click(좌표 기반은 window 최소화하면 작동 안됨.)
+## pywin32 방식의 단점이 old app은 elements를 잘 찾는데 newer app의 element는 못찾아서 uiautomation으로 찾아야되는듯.
+## test5.py가 최종이고 test3.py 도 참고 할만함.
+## automation.py -t 0 -n, print current active window's controls, show fullname
+## automation.py -r -d 1 -t 0, print desktop(the root of control tree) and it's children(top level windows)
+## windos 기본 프로그램을 uiautomation/pywinauto로 hwnd 얻어서 enter 혹은 click 보낼수 있는지 확인 필요.
+# click vs clcik_at 차이?
+
+""" 
+[tree 구조 및 hwnd 확인 tool]
+spy++ : win32로 찾을 수 있는 독립적인 hwnd 까지만 보여주는 듯
+inspect: hwnd이 없는 존재도 tree(child) 끝까지 보여주는듯
+
+[child 찾는 법]
+win32 : hwnd 있는 존재까지만 child 찾을 수 있는듯? title/class_name 으로만 검색 가능
+uiautomation: depth까지 해서 쉽게 child object 찾을 수 있음. 하지만 그게 꼭 hwnd까지 있다는 보장은 안됨.
+pywinauto: child_window method로 title,class_name, autoid 로 하위 child 검색가능. hwnd을 항상 보장하지는 않음.
+
+[click event]
+background: win32gui.PostMessage 이용. windows 기본 프로그램은 안되는 경우도 있음.
+[background종류]
+when window minimize : 해당 element의 hwnd을 알고 있는 경우. 해당 element click.
+*click
+win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, 0)
+win32gui.PostMessage(hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, 0)
+*enter
+win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
+win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
+
+when not minimize and behind other window : 해당 window 내 상대좌표로 click event. parent window hwnd만 알고있고 child는 rectangle만 알고있는 상황. window 기본 프로그램중에 안 먹히는것도 있음.
+
+when not minimize and frontmost : 스크린의 절대좌표 기준으로 click event. 해당 window는 항상 맨 앞 window 여야됨.
+
+"""
+
+
