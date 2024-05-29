@@ -169,4 +169,6 @@ when not minimize and frontmost : 스크린의 절대좌표 기준으로 click e
 
 """
 
-
+.. memo: event result는 어떻게 받지? 
+-> text input이면 해당 handle text 추출해서 동일한지 확인.
+-> click event이면 해당 handle이 없어지거나 변경점이 생겼는지 확인(?)
