@@ -1,4 +1,6 @@
-[![types of robotics software engineer](http://img.youtube.com/vi/wy_4SMAlFOyxExos/0.jpg)](https://youtu.be/wy_4SMAlFOyxExos)
+[![types of robotics software engineer](http://img.youtu.be/JI0gO_fDKEg?si=B_NAWLXR7pfROfxT/0.jpg)](https://youtu.be/JI0gO_fDKEg?si=B_NAWLXR7pfROfxT)
+
+https://youtu.be/JI0gO_fDKEg?si=B_NAWLXR7pfROfxT
 
 
 [types of robotics software engineer](https://youtu.be/JI0gO_fDKEg?si=wy_4SMAlFOyxExos)
