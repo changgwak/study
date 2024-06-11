@@ -10,7 +10,7 @@ https://devocean.sk.com/blog/techBoardDetail.do?ID=163566
 
 [branch generate and checkout](https://mylko72.gitbooks.io/git/content/branch/checkout.html)
 
-push new branch on remote](https://magoker.tistory.com/220)
+[push new branch on remote](https://magoker.tistory.com/220)
 
 
 [[project structure]]  
