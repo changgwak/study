@@ -86,5 +86,3 @@ print(parsed_data)
 [2] KodeKloud - YAML vs. JSON: Breaking Down the Key Differences (https://kodekloud.com/blog/yaml-vs-json/)
 [3] FAUN — Developer Community 🐾 - Python Trick: Working with JSON Vs YAML | by Sunil Kumar (https://faun.pub/python-tips-working-with-json-vs-yaml-70c100ca458b)
 [4] Amazon Web Services - YAML과 JSON 비교 - 데이터 직렬화 형식 간의 차이 (https://aws.amazon.com/ko/compare/the-difference-between-yaml-and-json/) 
-
-뤼튼 사용하러 가기 > https://agent.wrtn.ai/5xb91l
