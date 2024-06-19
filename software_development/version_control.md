@@ -7,3 +7,11 @@
 [branch generate and checkout](https://mylko72.gitbooks.io/git/content/branch/checkout.html)
 
 [push new branch on remote](https://magoker.tistory.com/220)
+
+
+
+git push <원격 저장소 명> <branch 이름>
+git push origin master
+
+git pull <원격 저장소 명> <branch 명>
+git pull origin master
