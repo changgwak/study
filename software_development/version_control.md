@@ -8,7 +8,7 @@
 
 [push new branch on remote](https://magoker.tistory.com/220)
 
-
+[git large file storage](https://git-lfs.com/)
 
 git push <원격 저장소 명> <branch 이름>
 git push origin master
