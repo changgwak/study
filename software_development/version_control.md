@@ -17,3 +17,14 @@ git push origin master
 
 git pull <원격 저장소 명> <branch 명>
 git pull origin master
+
+
+
+git init
+git checkout -b master
+git remote add origin <git remote repo>
+git pull origin master
+git checkout -b feature/display
+git add .
+git commit -m "Edit display order"
+git push -u origin feature/display
