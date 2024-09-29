@@ -27,4 +27,4 @@ git pull origin master
 git checkout -b feature/display  
 git add .  
 git commit -m "Edit display order"  
-git push -u origin feature/display  
+git push -u origin feature/display  // git push origin master
