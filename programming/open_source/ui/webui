@@ -13,6 +13,9 @@ gradio
 https://github.com/gradio-app/gradio.git
 
 
+fastapi
+https://github.com/fastapi/full-stack-fastapi-template
+
 flask
 
 django
