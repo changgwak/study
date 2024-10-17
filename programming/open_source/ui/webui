@@ -26,6 +26,8 @@ flask
 django
 
 
+app단 시각화 툴: superset (Apache), plotly recommended by machine learning lectuerer
+
 streamlit vs nicegui
 https://www.bitdoze.com/streamlit-vs-nicegui/
 
