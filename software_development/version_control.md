@@ -35,9 +35,9 @@ git push -u origin feature/display  // git push origin master
 git clone [url]  
 git branch --all  
 git checkout [each branch]  
-
-
-
+  
+  
+  
 [[PYPI]]
 ## How to update PYPI (for only project manager)
 
