@@ -36,6 +36,8 @@ git clone [url]
 git branch --all  
 git checkout [each branch]  
 
+
+
 [[PYPI]]
 ## How to update PYPI (for only project manager)
 
