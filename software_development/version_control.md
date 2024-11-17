@@ -30,6 +30,11 @@ git commit -m "Edit display order"
 git push -u origin feature/display  // git push origin master
 
 
+[How to Clone All Remote Branches from a Git Repository]([How to Clone All Remote Branches from a Git Repository](https://www.youtube.com/watch?v=qUtb8-CvEoo))
+git clone [url]
+git branch --all
+git checkout [each branch]
+
 [[PYPI]]
 ## How to update PYPI (for only project manager)
 
