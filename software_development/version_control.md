@@ -30,7 +30,8 @@ git commit -m "Edit display order"
 git push -u origin feature/display  // git push origin master
 
 
-[How to Clone All Remote Branches from a Git Repository]([How to Clone All Remote Branches from a Git Repository](https://www.youtube.com/watch?v=qUtb8-CvEoo))
+[.How to Clone All Remote Branches from a Git Repository]([How to Clone All Remote Branches from a Git Repository](https://www.youtube.com/watch?v=qUtb8-CvEoo))
+[.repository를 clone할 때 모든 branch를 local에 받기](https://github.com/jobhope/TechnicalNote/blob/master/github/CloneRepository.md)
 git clone [url]
 git branch --all
 git checkout [each branch]
