@@ -51,6 +51,11 @@ git checkout [each branch]
 2. Update `version` in `setup.py` file (Same setting as first step)
 3. Update after addtion, if `install_requires` is added in `setup.py`
 
+### Install pip
+```bash
+pip install wheel twine
+```
+
 ### Generate whl file
 ```bash
 python setup.py sdist bdist_wheel
