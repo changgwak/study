@@ -38,9 +38,9 @@ git branch --all
 git checkout [each branch]  
   
 
-[[git bundle]]
-git init .
-git commit -m "Initial commit"
+[[git bundle]]  
+git init .  
+git commit -m "Initial commit"  
 
 git bundle create file.bundle master
 
