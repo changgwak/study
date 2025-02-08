@@ -20,4 +20,3 @@
 
 .. World IT Show : [https://www.worlditshow.co.kr/main/main.php].(https://www.worlditshow.co.kr/main/main.php)
 
-[https://pschaldenbrand.github.io/cofrida/](https://pschaldenbrand.github.io/cofrida/)
