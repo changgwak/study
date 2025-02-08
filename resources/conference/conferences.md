@@ -10,7 +10,7 @@
 
 .. AIExpo Korea : http://www.aiexpo.co.kr/home/
 
-.. 대한민국 소프트웨어 대전: https://www.k-softwave.com/
+
 
 .. AI Seoul : https://aiseoul2025.com/home/
 
@@ -19,4 +19,8 @@
 .. https://industrialaiexpo.or.kr/main.asp
 
 .. World IT Show : [https://www.worlditshow.co.kr/main/main.php].(https://www.worlditshow.co.kr/main/main.php)
+
+.. 산업기술 R&D 종합대전 : https://itechfair.com/
+
+.. 12: 대한민국 소프트웨어 대전: https://www.k-softwave.com/
 
