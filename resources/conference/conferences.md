@@ -22,5 +22,7 @@
 
 .. 산업기술 R&D 종합대전 : https://itechfair.com/
 
+.. 11: SK AI Summit: https://www.skaisummit.com/
+
 .. 12: 대한민국 소프트웨어 대전: https://www.k-softwave.com/
 
