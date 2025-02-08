@@ -18,7 +18,7 @@
 
 .. https://industrialaiexpo.or.kr/main.asp
 
-.. World IT Show : [https://www.worlditshow.co.kr/main/main.php].(https://www.worlditshow.co.kr/main/main.php)
+.. 4: World IT Show : https://www.worlditshow.co.kr/main/main.php
 
 .. 산업기술 R&D 종합대전 : https://itechfair.com/
 
