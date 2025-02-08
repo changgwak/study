@@ -26,3 +26,4 @@
 
 .. 12: 대한민국 소프트웨어 대전: https://www.k-softwave.com/
 
+.. https://www.sek.co.kr/2025/Issue
