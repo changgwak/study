@@ -2,7 +2,7 @@
 
 .. 2: AI Seoul : https://aiseoul2025.com/home/
 
-.. 3: Automationworld
+.. 3: Automationworld : https://www.automationworld.co.kr/
 
 .. 4: World IT Show : https://www.worlditshow.co.kr/main/main.php
 
@@ -17,6 +17,8 @@
 .. 6: Autonomous Driving Mobility Industry Exhibition : https://am-expo.co.kr/fairDash.do
 
 .. 10: Digital Innovation Festa https://dinno.world/
+
+.. 11: Robo World: https://eng.robotworld.or.kr/
 
 .. 11: 산업기술 R&D 종합대전 : https://itechfair.com/
 
