@@ -1,10 +1,4 @@
-switch vs hub vs router
-https://www.itworld.co.kr/news/167585
 
-
-
-<br>
-<br>
 
 현재 원하는 목표는 **PC3(ubuntu)에서 직접 PC2(ubuntu)로 SSH 접속하여 VSCode Remote-SSH를 사용하는 것**입니다.
 
