@@ -113,12 +113,10 @@ ROS1 Cartographer SLAM은 센서 데이터의 전처리, 로컬 스캔 매칭 �
 **출처:**  
 - Cartographer SLAM 알고리즘 워크스루: [https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html](https://google-cartographer-ros.readthedocs.io/en/latest/algo_walkthrough.html) citecartographer_algo_walkthrough  
 - Cartographer 튜닝 가이드: [https://google-cartographer-ros.readthedocs.io/en/latest/tuning.html](https://google-cartographer-ros.readthedocs.io/en/latest/tuning.html) citecartographer_tuning
-
-
-
-          
-        
-       
+    
+    
+    
+         
 아래는 공식 문서(citecartographer_algo_walkthrough)의 내용을 기반으로 Cartographer SLAM 알고리즘을 보다 직관적으로, 그리고 자세하게 설명한 내용입니다. 각 단계마다 실제 로봇이 환경을 인식하고 지도를 생성하는 과정을 일상적인 예시와 유사하게 풀어 설명하였으니, 알고리즘의 전반적인 흐름과 내부 동작 원리를 깊이 이해하는 데 도움이 될 것입니다.
 
 ---
