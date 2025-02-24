@@ -143,6 +143,8 @@ class RobotNode
 {
 public:
     RobotNode();
+    void publish_status();  // Change from private to public
+    void publish_battery(); // Change from private to public
 
 private:
     ros::NodeHandle nh_;
@@ -162,8 +164,8 @@ private:
     // 서비스 클라이언트
     ros::ServiceClient calculate_square_client_;
 
-    void publish_status();
-    void publish_battery();
+    // void publish_status();
+    // void publish_battery();
     void command_callback(const std_msgs::String::ConstPtr &msg);
 
     // 서비스 서버 핸들러
@@ -256,7 +258,7 @@ void RobotNode::request_calculate_square(int number)
 
     if (calculate_square_client_.call(srv))
     {
-        ROS_INFO("Calculated square: %d", srv.response.square);
+        ROS_INFO("Calculated square: %ld", srv.response.square);
     }
     else
     {
@@ -310,3 +312,153 @@ rosrun my_ros1_system robot_node
 ---
 
 이제 ROS1에서도 ROS2와 동일한 구조로 실행할 수 있습니다! 🚀😃
+
+
+<br>
+<br>
+<br>
+
+Now that you've set up your **ROS1 C++ project**, let's test the **topics and services**. 🚀
+
+---
+
+# **📌 1️⃣ Test Topics**
+### **🔹 Check Published Topics**
+After running your node:
+```sh
+roscore
+rosrun my_ros1_system robot_node
+```
+Open another terminal and check which topics are active:
+```sh
+rostopic list
+```
+You should see:
+```
+/robot_status
+/battery_level
+/command_topic
+```
+
+---
+
+## **🔹 Subscribe to Topics**
+### **1️⃣ Check `robot_status` Messages**
+```sh
+rostopic echo /robot_status
+```
+Expected output every second:
+```
+data: "Robot is active."
+```
+
+### **2️⃣ Check `battery_level` Messages**
+```sh
+rostopic echo /battery_level
+```
+Expected output:
+```
+data: 75.5
+```
+
+### **3️⃣ Publish a Command to `command_topic`**
+Manually send a command:
+```sh
+rostopic pub /command_topic std_msgs/String "data: 'Move Forward'"
+```
+Your node should log:
+```
+[INFO] Received Command: Move Forward
+```
+
+---
+
+# **📌 2️⃣ Test Services**
+### **🔹 Check Available Services**
+```sh
+rosservice list
+```
+Expected output:
+```
+/add_two_ints_extended
+/calculate_square
+/get_robot_status
+```
+
+---
+
+## **🔹 Call Services**
+### **1️⃣ Test `add_two_ints_extended`**
+```sh
+rosservice call /add_two_ints_extended "a: 5  b: 7"
+```
+Expected response:
+```
+sum: 12
+parity: "even"
+```
+
+### **2️⃣ Test `calculate_square`**
+```sh
+rosservice call /calculate_square "number: 4"
+```
+Expected response:
+```
+square: 16
+```
+
+### **3️⃣ Test `get_robot_status`**
+```sh
+rosservice call /get_robot_status
+```
+Expected response:
+```
+status: "Robot is active"
+battery_level: 75.5
+```
+
+---
+
+# **📌 3️⃣ Test Service Client Inside the Node**
+Your `RobotNode::request_calculate_square(6);` function can be tested by modifying `main.cpp`:
+### **Modify `main.cpp` to Call Service Client**
+```cpp
+#include "ros/ros.h"
+#include "robot_node.hpp"
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "robot_node");
+
+    RobotNode node;
+
+    ros::Rate loop_rate(1);
+    while (ros::ok())
+    {
+        node.publish_status();
+        node.publish_battery();
+        node.request_calculate_square(6);  // Call service client
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+
+    return 0;
+}
+```
+Rebuild and run:
+```sh
+catkin_make
+rosrun my_ros1_system robot_node
+```
+Expected console output:
+```
+[INFO] Calculated square: 36
+```
+
+---
+
+Now you have a fully functional ROS1 node with **topics, services, and a service client** tested! 🚀🔥  
+Let me know if you need further refinements! 😃
+
+
+
