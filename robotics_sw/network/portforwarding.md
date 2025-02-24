@@ -453,3 +453,81 @@ ssh -p 2222 username@<PC1-IP>
 netsh interface portproxy delete v4tov4 listenaddress=<PC1-IP> listenport=2222
 netsh advfirewall firewall delete rule name="SSH Forwarding"
 ```
+<br>
+<br>
+
+
+# **🔧 Windows 포트포워딩 (Netsh) 설정 및 관리 Summary**
+
+## **1️⃣ 현재 설정 확인**
+### ✅ **포트포워딩 설정 확인**
+```powershell
+netsh interface portproxy show all
+```
+🔹 현재 설정된 포트포워딩 목록 확인
+
+### ✅ **포트 리스닝 상태 확인**
+```powershell
+netstat -an | findstr LISTENING
+```
+🔹 현재 활성화된 포트 확인
+
+### ✅ **방화벽 규칙 확인**
+```powershell
+netsh advfirewall firewall show rule name="SSH Forwarding"
+```
+🔹 방화벽에서 특정 포트(예: 2222)가 허용되어 있는지 확인
+
+---
+
+## **2️⃣ 포트포워딩 및 방화벽 규칙 추가**
+### ✅ **포트포워딩 설정 (PC1 → PC2)**
+```powershell
+netsh interface portproxy add v4tov4 listenaddress=<PC1-IP> listenport=2222 connectaddress=<PC2-IP> connectport=22
+```
+🔹 **PC1의 포트 2222**로 들어오는 요청을 **PC2의 포트 22(SHH)** 로 전달
+
+### ✅ **방화벽 규칙 추가 (SSH 포트 허용)**
+```powershell
+netsh advfirewall firewall add rule name="SSH Forwarding" dir=in action=allow protocol=TCP localport=2222
+```
+🔹 Windows 방화벽에서 **포트 2222** 허용
+
+---
+
+## **3️⃣ SSH 연결 테스트**
+```powershell
+ssh -p 2222 username@<PC1-IP>
+```
+🔹 **PC3에서 SSH를 통해 PC1의 포트 2222로 접속** (→ PC2로 포트포워딩됨)
+
+---
+
+## **4️⃣ 포트포워딩 및 방화벽 규칙 삭제**
+### ✅ **포트포워딩 삭제**
+```powershell
+netsh interface portproxy delete v4tov4 listenaddress=<PC1-IP> listenport=2222
+```
+🔹 설정된 포트포워딩 제거
+
+### ✅ **방화벽 규칙 삭제**
+```powershell
+netsh advfirewall firewall delete rule name="SSH Forwarding"
+```
+🔹 방화벽에서 SSH 포트포워딩 규칙 제거
+
+---
+
+## **📌 최종 요약**
+| 단계 | 명령어 | 설명 |
+|------|--------|------|
+| **현재 설정 확인** | `netsh interface portproxy show all` | 설정된 포트포워딩 확인 |
+| | `netstat -an | findstr LISTENING` | 활성화된 포트 확인 |
+| | `netsh advfirewall firewall show rule name="SSH Forwarding"` | 방화벽 규칙 확인 |
+| **포트포워딩 추가** | `netsh interface portproxy add v4tov4 listenaddress=<PC1-IP> listenport=2222 connectaddress=<PC2-IP> connectport=22` | SSH 포트포워딩 설정 |
+| **방화벽 설정** | `netsh advfirewall firewall add rule name="SSH Forwarding" dir=in action=allow protocol=TCP localport=2222` | 포트 2222 방화벽 허용 |
+| **SSH 접속 테스트** | `ssh -p 2222 username@<PC1-IP>` | PC3에서 PC2로 접속 테스트 |
+| **설정 제거** | `netsh interface portproxy delete v4tov4 listenaddress=<PC1-IP> listenport=2222` | 포트포워딩 삭제 |
+| | `netsh advfirewall firewall delete rule name="SSH Forwarding"` | 방화벽 규칙 삭제 |
+
+✅ **위 과정을 따라 하면 Windows에서 SSH 포트포워딩을 설정하고, 필요 시 삭제할 수 있음! 🚀**
