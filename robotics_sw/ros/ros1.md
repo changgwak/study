@@ -296,6 +296,12 @@ int main(int argc, char **argv)
 ---
 
 # **📌 9️⃣ 빌드 및 실행**
+
+```sh
+echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+```
+
 ```sh
 cd ~/catkin_ws
 catkin_make
@@ -304,6 +310,11 @@ catkin_make
 ---
 
 ## **1️⃣ 실행**
+```sh
+echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+```
+
 ```sh
 roscore
 rosrun my_ros1_system robot_node
