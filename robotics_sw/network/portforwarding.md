@@ -435,3 +435,21 @@ netsh interface portproxy show all
 ✅ **필요하면 포트포워딩 설정을 삭제하여 원래 상태로 복구 가능**  
 
 📌 **이제 충돌 없이 안전하게 포트포워딩을 설정할 수 있어! 🚀**
+
+<br>
+<br>
+
+## ** Suymmary **
+```
+netsh interface portproxy show all
+netstat -an | findstr LISTENING
+netsh advfirewall firewall show rule name="SSH Forwarding" 
+
+netsh interface portproxy add v4tov4 listenaddress=<PC1-IP> listenport=2222 connectaddress=<PC2-IP> connectport=22
+netsh advfirewall firewall add rule name="SSH Forwarding" dir=in action=allow protocol=TCP localport =2222 
+
+ssh -p 2222 username@<PC1-IP>
+
+netsh interface portproxy delete v4tov4 listenaddress=<PC1-IP> listenport=2222
+netsh advfirewall firewall delete rule name="SSH Forwarding"
+```
