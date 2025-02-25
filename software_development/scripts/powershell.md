@@ -12,7 +12,7 @@
 ```powershell
 # PC2 접속 정보
 $pc2_user = "<PC2-사용자명>"
-$pc2_ip = "20.20.0.14"
+$pc2_ip = "<PC2-IP>"
 $pc2_ssh_port = "22"  # 포트포워딩을 사용할 경우 2222
 
 # PC2 종료 명령 실행 (SSH 사용)
