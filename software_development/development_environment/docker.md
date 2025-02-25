@@ -73,3 +73,103 @@ docker run -it my_ros_image bash
 - **`docker save -o <파일명>.tar <이미지>` → 오프라인으로 이동**  
 - **`docker load -i <파일명>.tar` → 오프라인 환경에서 불러오기**  
 이 방법으로 쉽게 오프라인에서 Docker 환경을 구축할 수 있습니다.
+
+
+<br>
+<br>
+Great question! Here’s a clear explanation of the differences between **`docker run`**, **`docker start`**, **`docker stop`**, and **`exit`** in Docker.
+
+---
+
+## **🔹 `docker run` (Create & Start a New Container)**
+- **Creates a new container from an image and starts it.**
+- Every time you run `docker run`, a **new container instance** is created unless you specify a name.
+
+### **Example:**
+```bash
+docker run -it --name my_container ubuntu bash
+```
+- Starts a new container named `my_container` from the `ubuntu` image.
+- If no `--name` is provided, Docker assigns a random name.
+- If you stop this container and run `docker run` again, it creates **a completely new container**.
+
+### **Key Points:**
+✅ **Creates** and **starts** a new container.  
+✅ Runs in interactive mode (`-it`).  
+❌ **Data is lost if you don't specify a volume or save the container.**  
+
+---
+
+## **🔹 `docker start` (Start a Stopped Container)**
+- **Restarts an existing, stopped container** (does not create a new one).
+- Useful when you want to resume work on an existing container.
+
+### **Example:**
+```bash
+docker start -ai my_container
+```
+- Starts the stopped container `my_container` and attaches (`-ai`) to its terminal.
+
+### **Key Points:**
+✅ **Does NOT create a new container** (it reuses an existing one).  
+✅ Useful for **resuming work** on a previously stopped container.  
+❌ If the container **was removed (`docker rm`)**, you can't restart it.
+
+---
+
+## **🔹 `docker stop` (Gracefully Stop a Running Container)**
+- Sends a **SIGTERM signal** to allow processes inside the container to exit cleanly.
+- If the process doesn't stop within **10 seconds**, it is forcibly terminated.
+
+### **Example:**
+```bash
+docker stop my_container
+```
+- Stops the `my_container` **gracefully**.
+- The container **still exists** and can be restarted with `docker start`.
+
+### **Key Points:**
+✅ Allows applications inside the container to shut down **cleanly**.  
+✅ The container **remains saved** and can be restarted later.  
+❌ **Does not remove the container**, only stops it.
+
+---
+
+## **🔹 `exit` (Stop a Container from Inside)**
+- **Stops the container when you are inside it** (like closing a terminal).
+- Similar to `docker stop`, but done manually inside the container.
+
+### **Example:**
+```bash
+docker run -it ubuntu bash
+# Inside the container, type:
+exit
+```
+or use `Ctrl+D`.
+
+- The container stops, but **still exists** and can be restarted.
+
+### **Key Points:**
+✅ A manual way to **stop a running container**.  
+✅ Can restart it later using `docker start`.  
+❌ **Container remains but is not running**.
+
+---
+
+## **🚀 Summary Table**
+| Command        | Action |
+|---------------|--------|
+| `docker run`  | **Creates and starts a new container** from an image. |
+| `docker start` | **Restarts an existing, stopped container** (does not create a new one). |
+| `docker stop`  | **Gracefully stops a running container** but keeps it saved. |
+| `exit` (or `Ctrl+D`) | **Stops a running container from inside** the terminal. |
+
+---
+
+## **🎯 Which Command Should You Use?**
+- **Need a new container?** → `docker run`
+- **Want to resume a stopped container?** → `docker start`
+- **Want to stop a running container?** → `docker stop`
+- **Inside a container and want to exit?** → `exit` (or `Ctrl+D`)
+
+Would you like an example workflow using these commands? 🚀
