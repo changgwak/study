@@ -401,3 +401,83 @@ docker rm my_ros2_container
 
 Would you like a hands-on demo with real files? 🚀
 
+<br>
+<br>
+
+Yes! You can check **existing containers** in Docker using the following commands:
+
+---
+
+## **1️⃣ Check Running Containers (`docker ps`)**
+```bash
+docker ps
+```
+This shows **only actively running** containers.
+
+### **Example Output:**
+```
+CONTAINER ID   IMAGE                      COMMAND       STATUS       NAMES
+a1b2c3d4e5f6   osrf/ros:humble-desktop    "/bin/bash"   Up 5 hours   my_ros2_container
+```
+- **CONTAINER ID**: Unique identifier for the container.
+- **IMAGE**: The Docker image used.
+- **COMMAND**: The command running inside the container.
+- **STATUS**: How long the container has been running.
+- **NAMES**: The container’s assigned name.
+
+---
+
+## **2️⃣ Check All Containers (Including Stopped Ones)**
+```bash
+docker ps -a
+```
+This shows **all containers**, including those that have stopped.
+
+### **Example Output:**
+```
+CONTAINER ID   IMAGE                      COMMAND       STATUS                    NAMES
+a1b2c3d4e5f6   osrf/ros:humble-desktop    "/bin/bash"   Up 5 hours                my_ros2_container
+b2c3d4e5f6a1   ubuntu                     "/bin/bash"   Exited (0) 2 days ago     old_ubuntu_test
+```
+Here, the `old_ubuntu_test` container is **stopped** but still exists.
+
+---
+
+## **3️⃣ Check Only Stopped Containers**
+If you only want to see **stopped containers**, you can filter by `Exited` status:
+```bash
+docker ps -a --filter "status=exited"
+```
+
+---
+
+## **4️⃣ Check Container Details (`docker inspect`)**
+For **detailed info** about a container:
+```bash
+docker inspect my_ros2_container
+```
+This gives JSON output with **network, volume, and configuration details**.
+
+---
+
+## **5️⃣ Find a Container by Name or Image**
+If you remember the **image name** but not the container name:
+```bash
+docker ps -a | grep osrf/ros
+```
+If you want to search by **container name**:
+```bash
+docker ps -a | grep my_ros2_container
+```
+
+---
+
+## **🎯 Summary**
+| Command | What It Does |
+|---------|-------------|
+| `docker ps` | Shows **only running** containers |
+| `docker ps -a` | Shows **all containers** (running + stopped) |
+| `docker ps -a --filter "status=exited"` | Shows **only stopped** containers |
+| `docker inspect <container_name>` | Shows detailed info about a container |
+
+Now you can **see all containers** and manage them easily! 🚀 Want to remove old containers? Let me know!
