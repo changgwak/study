@@ -438,6 +438,227 @@ netsh interface portproxy show all
 
 <br>
 <br>
+<br>
+
+### **🔍 PC1을 재부팅한 후 포트포워딩(2222)이 사라지는 문제 해결**  
+
+✅ **현재 문제:**  
+- **PC1을 재부팅하면 `netsh interface portproxy` 설정이 사라짐.**
+- **재부팅 후 `netstat -an | findstr LISTENING` 실행 시 `<PC1-IP>:2222`가 사라짐.**
+- **이전과 동일한 포트포워딩 설정을 다시 적용해야 함.**
+
+---
+
+## **🚀 1️⃣ 포트포워딩을 부팅 시 자동으로 적용되도록 설정하기**
+💡 **Windows에서는 `netsh interface portproxy` 설정이 재부팅 후 사라질 수 있음.**  
+➡ 이를 해결하려면 **자동 실행 스크립트를 설정**해야 함.
+
+### **✅ 1. 기존 포트포워딩 확인**
+PowerShell(관리자 권한)에서 실행:
+```powershell
+netsh interface portproxy show all
+```
+📌 **설정이 사라졌다면, 다시 추가해야 함:**
+```powershell
+netsh interface portproxy add v4tov4 listenaddress=<PC1-IP> listenport=2222 connectaddress=<PC2-IP> connectport=22
+```
+
+---
+
+## **🚀 2️⃣ Windows 시작 시 자동 적용되도록 스크립트 작성**
+💡 **재부팅 후 자동으로 포트포워딩이 적용되도록 스크립트를 설정**  
+
+### **✅ 1. 포트포워딩 재설정 스크립트 작성**
+1️⃣ **PowerShell 스크립트 파일 만들기**  
+Windows에서 `C:\portproxy.ps1` 파일을 생성하고 아래 내용 추가:
+```powershell
+Start-Process netsh -ArgumentList "interface portproxy add v4tov4 listenaddress=<PC1-IP> listenport=2222 connectaddress=<PC2-IP> connectport=22" -NoNewWindow -Wait
+```
+
+2️⃣ **파일을 저장하고 닫기**
+
+---
+
+## **🚀 3️⃣ Windows 시작 시 자동 실행되도록 설정**
+💡 **Windows가 부팅될 때 포트포워딩 스크립트가 자동 실행되도록 설정**  
+
+### **✅ 1. 작업 스케줄러(Task Scheduler)에서 실행**
+1. **작업 스케줄러(Task Scheduler) 열기**  
+   `Win + R` → `taskschd.msc` 입력 후 Enter  
+2. **새 작업 생성**  
+   - 왼쪽에서 **"작업 스케줄러 라이브러리"** 선택  
+   - 오른쪽에서 **"기본 작업 만들기..."** 클릭  
+   - **이름:** `PortForwardingAuto`  
+   - **설명:** `Reapply port forwarding on startup`
+3. **트리거 설정**
+   - **"시작할 때"** 또는 **"로그온할 때"** 선택
+4. **작업 실행 프로그램 설정**
+   - **"프로그램 시작"** 선택  
+   - **프로그램 경로 입력:**  
+     ```
+     powershell.exe
+     ```
+   - **인수 추가:**  
+     ```
+     -ExecutionPolicy Bypass -File C:\portproxy.ps1
+     ```
+5. **"마침"을 클릭하여 설정 완료**
+
+---
+
+## **🚀 4️⃣ PC를 재부팅하고 확인하기**
+✅ **PC1을 재부팅한 후 다음 명령어 실행**
+```powershell
+netsh interface portproxy show all
+```
+📌 **출력 결과에 `<PC1-IP>:2222`이 다시 나타나면 성공!**  
+
+✅ **SSH 포트 리스닝 상태 확인**
+```powershell
+netstat -an | findstr LISTENING
+```
+📌 **2222 포트가 다시 LISTENING 상태라면 정상 작동 중!**  
+
+---
+
+## **🎯 최종 정리**
+✅ **포트포워딩 설정 (`netsh interface portproxy add ...`)**  
+✅ **Windows 시작 시 자동 적용되도록 PowerShell 스크립트 작성 (`portproxy.ps1`)**  
+✅ **작업 스케줄러(Task Scheduler)에서 PowerShell 스크립트를 부팅 시 자동 실행 설정**  
+✅ **PC 재부팅 후 `netsh interface portproxy show all` 및 `netstat -an | findstr LISTENING`으로 확인**  
+
+📌 **이제 PC1을 껐다 켜도 자동으로 포트포워딩이 유지됨! 🚀**
+
+
+<br>
+<br>
+<br>
+
+### **🔍 `netsh interface portproxy` 설정은 남아 있지만 `netstat`에서 포트가 LISTENING 상태가 아닌 문제 해결**  
+
+✅ **현재 상태:**  
+- `netsh interface portproxy show all` 실행 시 설정은 남아 있음  
+- 그러나 `netstat -an | findstr LISTENING` 실행 시 `<PC1-IP>:2222`이 보이지 않음  
+- **즉, 포트포워딩 설정은 유지되었지만 실제로 포트가 열려 있지 않음!**  
+
+👉 **가능한 원인:**  
+1. **IP 라우팅이 비활성화됨**  
+2. **Windows 방화벽이 다시 차단했을 가능성**  
+3. **IPv6 문제 (Windows 포트포워딩은 기본적으로 IPv6를 사용하려고 함)**  
+4. **TCP 연결을 수락할 서비스가 필요할 수 있음**  
+
+---
+
+## **🚀 1️⃣ Windows의 IP 라우팅 기능 활성화**
+💡 **Windows에서 포트포워딩이 제대로 동작하려면 IP 라우팅 기능이 켜져 있어야 함.**  
+✅ **설정 확인** (관리자 권한 PowerShell 실행):
+```powershell
+reg query HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters /v IPEnableRouter
+```
+📌 **출력값이 `0x1`이 아니면 비활성화된 상태!**  
+✅ **활성화하려면:**
+```powershell
+reg add HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters /v IPEnableRouter /t REG_DWORD /d 1 /f
+```
+✅ **적용 후 Windows 재부팅:**
+```powershell
+shutdown -r -t 0
+```
+
+---
+
+## **🚀 2️⃣ 방화벽에서 포트 2222 허용 (Inbound & Outbound 모두)**
+💡 **Windows 방화벽이 2222 포트를 막고 있을 수 있음.**  
+✅ **포트포워딩된 트래픽을 허용하려면 아래 명령어 실행 (관리자 권한 PowerShell):**
+```powershell
+netsh advfirewall firewall add rule name="SSH Port Forwarding Inbound" dir=in action=allow protocol=TCP localport=2222
+netsh advfirewall firewall add rule name="SSH Port Forwarding Outbound" dir=out action=allow protocol=TCP localport=2222
+```
+✅ **방화벽 규칙 확인**
+```powershell
+netsh advfirewall firewall show rule name="SSH Port Forwarding Inbound"
+netsh advfirewall firewall show rule name="SSH Port Forwarding Outbound"
+```
+✅ **방화벽이 여전히 문제라면 일시적으로 꺼보고 테스트**
+```powershell
+netsh advfirewall set allprofiles state off
+```
+📌 **테스트 후 다시 켜기**
+```powershell
+netsh advfirewall set allprofiles state on
+```
+
+---
+
+## **🚀 3️⃣ Windows의 포트포워딩이 IPv6에서만 동작하는 문제 해결**
+💡 **Windows `netsh interface portproxy`는 기본적으로 IPv6를 사용하려고 할 수 있음.**  
+💡 **IPv4에서 강제 활성화해야 포트가 열릴 수 있음.**  
+
+✅ **IPv4에서 포트포워딩을 다시 추가하는 방법** (관리자 권한 PowerShell 실행):
+```powershell
+netsh interface portproxy reset
+netsh interface portproxy add v4tov4 listenaddress=<PC1-IP> listenport=2222 connectaddress=<PC2-IP> connectport=22
+```
+✅ **IPv6에서 IPv4로 변환 활성화**
+```powershell
+netsh interface ipv6 set global ipv6toipv4=enabled
+```
+✅ **Windows 재부팅 후 다시 `netstat` 확인**
+```powershell
+shutdown -r -t 0
+```
+
+---
+
+## **🚀 4️⃣ TCP 포트가 LISTENING 상태가 되도록 서비스 추가 (필요 시)**
+💡 **Windows에서는 `netsh interface portproxy`가 특정한 서비스가 TCP 연결을 수락할 때만 작동할 수 있음.**  
+✅ **다음 명령을 실행하여 `nc`(Netcat)를 사용해 강제로 포트를 열어볼 수 있음:**
+```powershell
+ncat -l 2222
+```
+📌 **그 후 다시 `netstat` 확인:**  
+```powershell
+netstat -an | findstr LISTENING
+```
+✅ **만약 LISTENING 상태로 변경되면, Windows가 TCP 트래픽을 자동 수락하지 않도록 설정된 것일 가능성이 높음!**  
+➡ **Windows에서 SSH 서버를 직접 실행하면 문제 해결 가능 (`OpenSSH Server` 설치).**
+
+---
+
+## **🚀 5️⃣ Windows에서 OpenSSH 서버 활성화 (최후의 방법)**
+💡 **Windows에서 OpenSSH 서버를 활성화하면, 포트포워딩을 직접 처리하지 않아도 SSH 트래픽을 수락할 수 있음.**  
+✅ **OpenSSH 설치 확인** (관리자 권한 PowerShell 실행)
+```powershell
+Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH*'
+```
+📌 **설치되지 않았다면:**  
+```powershell
+Add-WindowsCapability -Online -Name OpenSSH.Server
+```
+✅ **SSH 서비스 시작 및 자동 실행 설정**
+```powershell
+Start-Service sshd
+Set-Service -Name sshd -StartupType Automatic
+```
+📌 **이제 다시 포트포워딩을 설정하고 테스트해볼 수 있음!**
+
+---
+
+## **🎯 최종 해결 체크리스트**
+✔ **Windows에서 IP 라우팅 기능 활성화 (`reg add HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters /v IPEnableRouter /t REG_DWORD /d 1 /f`)**  
+✔ **Windows 방화벽에서 포트 2222 Inbound & Outbound 허용 (`netsh advfirewall firewall add rule ...`)**  
+✔ **Windows의 `netsh interface portproxy`를 IPv4로 강제 설정 (`netsh interface ipv6 set global ipv6toipv4=enabled`)**  
+✔ **TCP 연결을 강제로 수락하는 서비스 실행 (`ncat -l 2222`) 후 `netstat` 확인**  
+✔ **최후의 방법으로 Windows OpenSSH 서버 활성화 (`Add-WindowsCapability -Online -Name OpenSSH.Server`)**  
+
+✅ **이제 다시 `netstat -an | findstr LISTENING` 실행 후 포트 2222가 활성화되었는지 확인하고, SSH 접속을 테스트해봐! 🚀**
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
 
 ## ** Suymmary **
 ```
