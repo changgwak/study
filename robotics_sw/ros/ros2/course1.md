@@ -322,6 +322,7 @@ int main(int argc, char **argv) {
 <br>
 <br>
 <br>
+<br>
 
 ## **2. C++ 기초 문법 (ROS2 적용을 위한 필수 개념)**
 
@@ -944,7 +945,183 @@ rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("my_node");
 <br>
 <br>
 <br>
+
+## **📌 C++에서 `->` 와 `.` 의 차이점**
+C++에서는 `.` (dot operator)과 `->` (arrow operator)를 모두 사용할 수 있지만, **사용하는 대상이 다릅니다**.
+
+| 연산자 | 사용 대상 | 예제 |
+|------|---------|-------|
+| `.` (dot operator) | **객체(Object)** | `object.function()` |
+| `->` (arrow operator) | **포인터(Pointer)** | `ptr->function()` |
+
+💡 **즉, `.` 는 일반 객체에서 멤버 접근할 때 사용하고, `->` 는 포인터가 가리키는 객체의 멤버에 접근할 때 사용합니다.**
+
+---
+
+## **1️⃣ `.` (dot operator) - 객체를 직접 사용할 때**
+💡 **객체(Instance)를 직접 사용할 경우 `.`을 사용하여 멤버에 접근**  
+```cpp
+#include <iostream>
+
+class Car {
+public:
+    void drive() {
+        std::cout << "자동차가 달립니다!" << std::endl;
+    }
+};
+
+int main() {
+    Car myCar;  // 객체 생성
+    myCar.drive();  // ✅ 객체가 직접 멤버 함수 호출 (dot operator 사용)
+    return 0;
+}
+```
+✅ **여기서 `myCar`는 `Car` 객체이며, `myCar.drive();`를 통해 `drive()` 멤버 함수에 접근**  
+
+---
+
+## **2️⃣ `->` (arrow operator) - 포인터를 사용할 때**
+💡 **포인터가 객체를 가리키는 경우 `->`를 사용하여 멤버에 접근**  
+```cpp
+#include <iostream>
+
+class Car {
+public:
+    void drive() {
+        std::cout << "자동차가 달립니다!" << std::endl;
+    }
+};
+
+int main() {
+    Car* carPtr = new Car();  // 객체를 동적 할당하여 포인터로 관리
+    carPtr->drive();  // ✅ 포인터를 통해 멤버 함수 호출 (arrow operator 사용)
+
+    delete carPtr;  // 동적 할당된 메모리 해제
+    return 0;
+}
+```
+✅ **여기서 `carPtr`은 `Car` 객체를 가리키는 포인터이며, `carPtr->drive();`를 통해 멤버 함수 호출**
+
+---
+
+## **3️⃣ `.` 와 `->` 를 함께 쓰는 경우**
+💡 **객체가 포인터로 접근 가능한 경우, `.`을 사용하여 포인터 해제 후 접근할 수도 있음.**
+```cpp
+#include <iostream>
+
+class Car {
+public:
+    void drive() {
+        std::cout << "자동차가 달립니다!" << std::endl;
+    }
+};
+
+int main() {
+    Car myCar;   // 일반 객체
+    Car* carPtr = &myCar;  // 포인터가 객체를 가리킴
+
+    myCar.drive();    // ✅ 객체 직접 접근 (dot operator)
+    carPtr->drive();  // ✅ 포인터를 통해 접근 (arrow operator)
+    (*carPtr).drive();  // ✅ 포인터를 역참조 후 dot operator 사용
+
+    return 0;
+}
+```
+✅ **`(*carPtr).drive();` → 포인터를 역참조한 후 `.`을 사용하여 멤버 함수 호출 가능**  
+✅ **하지만 `carPtr->drive();`가 더 직관적이고 일반적으로 사용됨.**
+
+---
+
+## **4️⃣ 클래스 멤버 접근에서 `.` vs `->`**
+💡 **클래스 멤버 변수에 접근하는 경우에도 동일한 원칙이 적용됨.**
+```cpp
+#include <iostream>
+
+class Person {
+public:
+    std::string name;
+    int age;
+};
+
+int main() {
+    Person person1;
+    person1.name = "Alice";  // ✅ 일반 객체는 dot 사용
+    person1.age = 25;
+
+    Person* personPtr = &person1;
+    personPtr->name = "Bob";  // ✅ 포인터는 arrow 사용
+    personPtr->age = 30;
+
+    std::cout << "이름: " << person1.name << ", 나이: " << person1.age << std::endl;
+    return 0;
+}
+```
+✅ **일반 객체에서는 `.` 사용, 포인터에서는 `->` 사용**
+
+---
+
+## **5️⃣ `std::shared_ptr` 와 `std::unique_ptr` 사용 시**
+💡 **C++ 스마트 포인터 (`std::shared_ptr`, `std::unique_ptr`) 를 사용할 때도 `->`를 사용**  
+```cpp
+#include <iostream>
+#include <memory>  // 스마트 포인터 사용을 위한 헤더
+
+class Car {
+public:
+    void drive() {
+        std::cout << "스마트 포인터를 사용한 자동차가 달립니다!" << std::endl;
+    }
+};
+
+int main() {
+    std::shared_ptr<Car> carPtr = std::make_shared<Car>();
+    carPtr->drive();  // ✅ 스마트 포인터에서도 arrow operator 사용
+
+    return 0;
+}
+```
+✅ **스마트 포인터(`std::shared_ptr`, `std::unique_ptr`)는 포인터처럼 동작하므로 `->` 사용**
+
+---
+
+## **6️⃣ `tf2_ros::Buffer` 와 `lookupTransform()` 에서 `->` 사용**
+💡 **ROS2에서 `tf2_ros::Buffer` 객체를 포인터로 선언했기 때문에 `->` 사용**
+
+```cpp
+std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+
+// ✅ 포인터이므로 `->` 사용
+transform = tf_buffer_->lookupTransform("base_link", "laser", tf2::TimePointZero);
+```
+✅ **`tf_buffer_`는 `std::shared_ptr<tf2_ros::Buffer>` 타입이므로 `->` 연산자를 사용해야 함**  
+✅ **만약 `tf2_ros::Buffer` 객체를 직접 선언했다면 `.` 연산자를 사용할 수 있음**
+```cpp
+tf2_ros::Buffer tf_buffer(this->get_clock());
+transform = tf_buffer.lookupTransform("base_link", "laser", tf2::TimePointZero);
+```
+
+---
+
+## **📌 최종 정리**
+| 사용 대상 | 연산자 | 예제 |
+|---------|------|----------------------|
+| **일반 객체** | `.` | `object.function()` |
+| **포인터가 가리키는 객체** | `->` | `ptr->function()` |
+| **포인터를 역참조한 후 접근** | `.` | `(*ptr).function()` |
+| **스마트 포인터 사용 (`std::shared_ptr`)** | `->` | `shared_ptr_obj->function()` |
+| **ROS2 TF2 사용 (`tf2_ros::Buffer`)** | `->` | `tf_buffer_->lookupTransform(...)` |
+
+✅ **객체를 직접 사용할 때는 `.` 를 사용하고, 포인터를 통해 접근할 때는 `->` 를 사용하면 된다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
 <br>
+<br>
+<br>
+<br>
+<br>
+
 
 # **3. 객체지향 프로그래밍 (OOP)과 ROS2 적용**
 
@@ -4567,6 +4744,176 @@ RCLCPP_INFO(rclcpp::get_logger("serializer"), "역직렬화된 데이터: %s", d
 | **메시지 직렬화** | `rclcpp::Serialization` | `serialize_message()` |
 
 ✅ **이제 ROS2에서 다양한 메시지 타입을 C++로 활용할 수 있습니다!** 🚀  
+
+
+
+<br>
+<br>
+<br>
+<br>
+
+### **📌 ROS2에서 메시지 직렬화(Serialization)와 역직렬화(Deserialization)를 사용하는 이유**
+
+**💡 직렬화(Serialization)와 역직렬화(Deserialization)는 메시지를 바이너리 데이터로 변환하여 저장하거나 네트워크를 통해 효율적으로 전송할 때 사용됩니다.**  
+
+직렬화된 데이터는 **더 작은 크기로 변환되어 빠르게 전송되거나 저장될 수 있으며, 역직렬화를 통해 다시 원래의 메시지 객체로 변환할 수 있습니다.**  
+
+---
+
+## **1️⃣ 언제 직렬화와 역직렬화를 사용할까?**
+| **사용 사례** | **설명** |
+|-------------|----------------------------------------------|
+| **메시지를 파일에 저장** | ROS2 메시지를 로그 파일이나 데이터베이스에 저장 |
+| **네트워크 전송 최적화** | 여러 메시지를 하나의 바이너리 데이터로 묶어 네트워크를 통해 빠르게 전송 |
+| **ROS2 노드 간 메시지 공유** | 직접 ROS2 퍼블리셔-서브스크라이버가 아닌, **UDP/TCP 소켓 또는 공유 메모리를 통해 데이터를 주고받을 때** |
+| **멀티 프로세스 간 데이터 공유** | `rclcpp::Serialization`을 사용하여 **다른 프로세스나 머신에서도 동일한 메시지를 복원 가능** |
+
+---
+
+## **2️⃣ 메시지를 파일에 저장하고 다시 불러오기 (직렬화 & 역직렬화 활용 예제)**
+💡 **ROS2에서 메시지를 JSON/바이너리 파일로 저장하고 다시 불러오는 예제**
+
+### **🔹 메시지 직렬화 후 파일 저장**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/string.hpp"
+#include "rclcpp/serialization.hpp"
+#include <fstream>
+
+void save_message_to_file(const std_msgs::msg::String &msg, const std::string &filename) {
+    rclcpp::Serialization<std_msgs::msg::String> serializer;
+    rclcpp::SerializedMessage serialized_msg;
+    
+    // 메시지 직렬화
+    serializer.serialize_message(&msg, &serialized_msg);
+
+    // 직렬화된 데이터를 파일에 저장
+    std::ofstream out_file(filename, std::ios::binary);
+    out_file.write(reinterpret_cast<const char*>(serialized_msg.get_rcl_serialized_message().buffer),
+                   serialized_msg.get_rcl_serialized_message().buffer_length);
+    out_file.close();
+
+    RCLCPP_INFO(rclcpp::get_logger("serializer"), "메시지를 파일에 저장: %s", filename.c_str());
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+
+    // 메시지 생성
+    std_msgs::msg::String msg;
+    msg.data = "Hello ROS2 Serialization!";
+
+    // 메시지 파일 저장
+    save_message_to_file(msg, "ros2_message.bin");
+
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **`serialize_message()`를 사용하여 ROS2 메시지를 바이너리 파일로 저장**  
+✅ **이후 언제든지 역직렬화를 통해 데이터를 복원할 수 있음**  
+
+---
+
+### **🔹 저장된 메시지를 파일에서 불러와 역직렬화**
+```cpp
+void load_message_from_file(std_msgs::msg::String &msg, const std::string &filename) {
+    rclcpp::Serialization<std_msgs::msg::String> serializer;
+    rclcpp::SerializedMessage serialized_msg;
+
+    // 파일에서 직렬화된 데이터 읽기
+    std::ifstream in_file(filename, std::ios::binary);
+    if (in_file) {
+        in_file.seekg(0, std::ios::end);
+        std::streamsize size = in_file.tellg();
+        in_file.seekg(0, std::ios::beg);
+
+        serialized_msg.reserve(size);
+        in_file.read(reinterpret_cast<char*>(serialized_msg.get_rcl_serialized_message().buffer), size);
+        in_file.close();
+
+        // 역직렬화하여 메시지 복원
+        serializer.deserialize_message(&serialized_msg, &msg);
+
+        RCLCPP_INFO(rclcpp::get_logger("serializer"), "파일에서 메시지를 로드: %s", msg.data.c_str());
+    } else {
+        RCLCPP_ERROR(rclcpp::get_logger("serializer"), "파일을 열 수 없습니다: %s", filename.c_str());
+    }
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+
+    std_msgs::msg::String msg;
+    
+    // 저장된 메시지를 복원
+    load_message_from_file(msg, "ros2_message.bin");
+
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **파일에서 데이터를 불러와 `deserialize_message()`를 이용해 복원 가능!**  
+✅ **이 방법을 이용하면, ROS2 메시지를 로그 파일로 저장하여 이후 분석 가능!**  
+
+---
+
+## **3️⃣ 멀티 프로세스 간 메시지 공유 (공유 메모리 활용)**
+💡 **ROS2 메시지를 `rclcpp::Serialization`을 이용해 직렬화한 후, 공유 메모리를 통해 다른 프로세스와 데이터 공유**
+
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/string.hpp"
+#include "rclcpp/serialization.hpp"
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+void save_to_shared_memory(const std_msgs::msg::String &msg) {
+    rclcpp::Serialization<std_msgs::msg::String> serializer;
+    rclcpp::SerializedMessage serialized_msg;
+    serializer.serialize_message(&msg, &serialized_msg);
+
+    int fd = shm_open("/ros2_shared_mem", O_CREAT | O_RDWR, 0666);
+    ftruncate(fd, serialized_msg.size());
+    void *ptr = mmap(0, serialized_msg.size(), PROT_WRITE, MAP_SHARED, fd, 0);
+    memcpy(ptr, serialized_msg.get_rcl_serialized_message().buffer, serialized_msg.size());
+    munmap(ptr, serialized_msg.size());
+    close(fd);
+
+    RCLCPP_INFO(rclcpp::get_logger("serializer"), "공유 메모리에 메시지 저장!");
+}
+
+void load_from_shared_memory(std_msgs::msg::String &msg) {
+    rclcpp::Serialization<std_msgs::msg::String> serializer;
+    rclcpp::SerializedMessage serialized_msg;
+
+    int fd = shm_open("/ros2_shared_mem", O_RDONLY, 0666);
+    struct stat sb;
+    fstat(fd, &sb);
+    void *ptr = mmap(0, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    memcpy(serialized_msg.get_rcl_serialized_message().buffer, ptr, sb.st_size);
+    munmap(ptr, sb.st_size);
+    close(fd);
+
+    serializer.deserialize_message(&serialized_msg, &msg);
+    RCLCPP_INFO(rclcpp::get_logger("serializer"), "공유 메모리에서 메시지 로드: %s", msg.data.c_str());
+}
+```
+✅ **이 방법을 이용하면, ROS2 메시지를 네트워크 없이 프로세스 간 빠르게 공유 가능!**  
+✅ **공유 메모리를 사용하면 데이터 복사 없이 빠르게 처리 가능!**
+
+---
+
+## **📌 최종 정리**
+| 사용 사례 | 직렬화 필요 여부 | 설명 |
+|-----------|----------------|------------------------------------|
+| **ROS2 퍼블리셔-서브스크라이버** | ❌ | 기본적인 ROS2 메시지 통신 |
+| **메시지를 파일로 저장** | ✅ | ROS2 데이터를 로그로 저장 후 분석 |
+| **네트워크 전송 최적화** | ✅ | 메시지를 바이너리 형태로 압축 후 전송 |
+| **멀티 프로세스 간 데이터 공유** | ✅ | 공유 메모리를 이용한 메시지 교환 |
+
+✅ **이제 ROS2에서 직렬화/역직렬화가 언제 필요한지 이해되셨나요?** 🚀  
 추가 질문이 있으면 언제든지 물어보세요! 😊
 
 
@@ -4575,23 +4922,2444 @@ RCLCPP_INFO(rclcpp::get_logger("serializer"), "역직렬화된 데이터: %s", d
 <br>
 <br>
 <br>
+
+# **10. ROS2 TF2와 C++**
+ROS2에서 **TF2 (Transform Framework 2)** 는 **로봇의 좌표 변환 및 프레임 관리**를 담당하는 필수적인 라이브러리입니다.  
+이번 강의에서는 **C++을 활용하여 TF2를 사용하고, 좌표 변환을 수행하며, TF 브로드캐스터와 리스너를 구현하는 방법**을 다룹니다.  
+
+---
+
+# **📌 1️⃣ TF2란?**
+**TF2 (Transform Framework 2)** 는 **로봇의 여러 프레임을 효율적으로 관리하고 변환하는 기능**을 제공하는 ROS2 라이브러리입니다.  
+- **TF 브로드캐스터 (Broadcaster)** → 프레임의 위치 및 자세(Pose) 정보를 송신  
+- **TF 리스너 (Listener)** → 브로드캐스터가 보낸 변환 정보를 수신 및 활용  
+- **좌표 변환 (Coordinate Transformation)** → 특정 프레임에서 다른 프레임으로 좌표 변환 수행  
+
+### **🔹 예제: 로봇과 센서의 관계**
+- 로봇의 기본 좌표 프레임: **"base_link"**
+- LiDAR 센서의 좌표 프레임: **"laser"**
+- `laser`의 위치가 `base_link` 기준으로 `(x=1.0, y=0.0, z=0.2)` 라면?
+  → `TF 브로드캐스터`가 **"base_link → laser"** 변환을 지속적으로 송신  
+  → `TF 리스너`가 이를 받아서 **좌표 변환을 수행 가능**
+
+---
+
+# **📌 2️⃣ `tf2_ros::Buffer` 와 `tf2_ros::TransformListener` 사용법**
+TF2에서 **변환 정보를 저장하고 관리하는 핵심 클래스**는 `tf2_ros::Buffer`와 `tf2_ros::TransformListener` 입니다.  
+
+| **클래스** | **설명** |
+|-----------|--------------------------------|
+| `tf2_ros::Buffer` | 좌표 변환 데이터를 저장하고 관리 |
+| `tf2_ros::TransformListener` | TF 브로드캐스터가 보낸 변환 정보를 수신 |
+
+---
+
+## **🔹 TF2 리스너 예제 (`tf2_ros::TransformListener`)**
+💡 **"base_link" 기준으로 "laser" 프레임의 위치를 확인하는 코드**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+
+class TFListener : public rclcpp::Node {
+public:
+    TFListener() : Node("tf_listener") {
+        tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+        tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+        timer_ = this->create_wall_timer(std::chrono::seconds(1),
+            std::bind(&TFListener::lookupTransform, this));
+    }
+
+private:
+    void lookupTransform() {
+        try {
+            geometry_msgs::msg::TransformStamped transform;
+            transform = tf_buffer_->lookupTransform("base_link", "laser", tf2::TimePointZero);
+
+            RCLCPP_INFO(this->get_logger(), "laser 좌표 (x: %f, y: %f, z: %f)",
+                        transform.transform.translation.x,
+                        transform.transform.translation.y,
+                        transform.transform.translation.z);
+        } catch (tf2::TransformException &ex) {
+            RCLCPP_WARN(this->get_logger(), "TF 조회 실패: %s", ex.what());
+        }
+    }
+
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<TFListener>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **`tf2_ros::TransformListener`가 "base_link → laser" 변환 정보를 가져옴**  
+✅ **TF가 없을 경우 예외 처리 (`TransformException`)를 수행하여 안전한 코드 구현**  
+
+---
+
+# **📌 3️⃣ 좌표 변환 및 프레임 관리 (`geometry_msgs::TransformStamped`)**
+💡 **좌표 변환은 로봇의 다양한 센서 및 부품 간 위치 관계를 설정하는 데 사용됩니다.**  
+
+| **메시지 타입** | **설명** |
+|----------------|--------------------------------|
+| `geometry_msgs::TransformStamped` | 두 프레임 간 변환 정보를 저장 |
+| `geometry_msgs::Vector3` | 3D 공간 내 위치 (x, y, z) |
+| `geometry_msgs::Quaternion` | 3D 공간 내 회전 (x, y, z, w) |
+
+---
+
+### **🔹 `TransformStamped` 활용 예제**
+```cpp
+geometry_msgs::msg::TransformStamped transform;
+transform.header.stamp = this->get_clock()->now();
+transform.header.frame_id = "base_link";
+transform.child_frame_id = "laser";
+transform.transform.translation.x = 1.0;
+transform.transform.translation.y = 0.0;
+transform.transform.translation.z = 0.2;
+
+// 오일러 각도를 쿼터니언으로 변환하여 설정
+tf2::Quaternion q;
+q.setRPY(0, 0, 0);  // (roll, pitch, yaw)
+transform.transform.rotation.x = q.x();
+transform.transform.rotation.y = q.y();
+transform.transform.rotation.z = q.z();
+transform.transform.rotation.w = q.w();
+```
+✅ **`TransformStamped`를 사용하여 `base_link → laser` 변환 정의**  
+✅ **`tf2::Quaternion`을 활용해 회전 정보 설정**  
+
+---
+
+# **📌 4️⃣ TF 브로드캐스트 및 리스너 구현**
+## **🔹 TF 브로드캐스터 (`tf2_ros::TransformBroadcaster`)**
+💡 **"base_link"에서 "laser" 프레임을 지속적으로 브로드캐스트하는 코드**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/transform_broadcaster.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+#include "tf2/LinearMath/Quaternion.h"
+
+class TFBroadcaster : public rclcpp::Node {
+public:
+    TFBroadcaster() : Node("tf_broadcaster") {
+        broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+        timer_ = this->create_wall_timer(std::chrono::seconds(1),
+            std::bind(&TFBroadcaster::broadcastTransform, this));
+    }
+
+private:
+    void broadcastTransform() {
+        geometry_msgs::msg::TransformStamped transform;
+        transform.header.stamp = this->get_clock()->now();
+        transform.header.frame_id = "base_link";
+        transform.child_frame_id = "laser";
+        transform.transform.translation.x = 1.0;
+        transform.transform.translation.y = 0.0;
+        transform.transform.translation.z = 0.2;
+
+        tf2::Quaternion q;
+        q.setRPY(0, 0, 0);
+        transform.transform.rotation.x = q.x();
+        transform.transform.rotation.y = q.y();
+        transform.transform.rotation.z = q.z();
+        transform.transform.rotation.w = q.w();
+
+        broadcaster_->sendTransform(transform);
+    }
+
+    std::shared_ptr<tf2_ros::TransformBroadcaster> broadcaster_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<TFBroadcaster>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **TF 브로드캐스터가 "base_link → laser" 변환을 1초마다 송신**  
+✅ **`tf2_ros::TransformBroadcaster`를 사용하여 좌표 변환을 브로드캐스트**  
+
+---
+
+# **📌 최종 정리**
+| 기능 | C++ 클래스/메시지 | 역할 |
+|------|----------------|------------------------------|
+| **TF 리스너** | `tf2_ros::TransformListener` | TF 브로드캐스터가 보낸 변환을 수신 |
+| **TF 버퍼** | `tf2_ros::Buffer` | TF 데이터를 저장 및 관리 |
+| **좌표 변환** | `geometry_msgs::TransformStamped` | 프레임 간 변환 정보 저장 |
+| **TF 브로드캐스터** | `tf2_ros::TransformBroadcaster` | 변환 정보를 지속적으로 방송 |
+
+✅ **이제 ROS2에서 C++을 활용한 TF2 좌표 변환을 구현할 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
 <br>
 <br>
 <br>
 <br>
+
+**`broadcaster_->sendTransform(transform);`**  
+이 코드가 **ROS2 토픽 메시지 퍼블리싱(`publish()`)과 동일한 역할을 하는지**에 대한 질문이죠?  
+
+💡 **짧은 답변:**  
+✅ **"Yes, TF 브로드캐스터는 내부적으로 ROS2 토픽 메시지(`/tf` 또는 `/tf_static`)를 퍼블리싱합니다."**  
+그러나 일반적인 ROS2 토픽 퍼블리싱과는 몇 가지 차이점이 있습니다.
+
+---
+
+## **📌 `sendTransform()`과 `publish()` 비교**
+| 기능 | 일반 ROS2 퍼블리싱 (`publish()`) | TF2 브로드캐스팅 (`sendTransform()`) |
+|------|---------------------------------|----------------------------------|
+| **퍼블리셔 객체** | `rclcpp::Publisher<T>::SharedPtr` | `tf2_ros::TransformBroadcaster` |
+| **메시지 타입** | `std_msgs::msg::String`, `sensor_msgs::msg::LaserScan`, `geometry_msgs::msg::Pose` 등 | `geometry_msgs::msg::TransformStamped` |
+| **토픽 이름** | `"chatter"`, `"scan"` 등 개발자가 지정 | **`/tf` 또는 `/tf_static` (자동 설정됨)** |
+| **퍼블리싱 방식** | `publisher_->publish(msg);` | `broadcaster_->sendTransform(transform);` |
+| **구독자** | 일반 ROS2 노드 | `tf2_ros::TransformListener` (TF 리스너 노드) |
+
+### **📌 `sendTransform()` 동작 방식**
+- `sendTransform()`을 호출하면 **내부적으로 `/tf` 토픽에 `geometry_msgs::msg::TransformStamped` 메시지를 자동 퍼블리싱**합니다.
+- 일반적인 `publish()`와 차이점은 **토픽 이름을 직접 설정하지 않고, TF2 시스템이 자동으로 `/tf` 또는 `/tf_static`으로 관리한다는 점**입니다.
+
+---
+
+## **📌 실제 퍼블리싱 확인 (`ros2 topic list` & `ros2 topic echo`)**
+### **✅ TF 브로드캐스터 실행 후 확인**
+TF 브로드캐스터 노드를 실행한 후, 터미널에서 ROS2 토픽 리스트를 확인하면 `/tf` 또는 `/tf_static` 토픽이 자동으로 생성됩니다.
+
+```bash
+ros2 topic list
+```
+🔹 **출력 예시**
+```
+/tf
+/tf_static
+```
+`/tf` → **시간이 변하는 동적(Dynamic) 프레임 변환 정보**  
+`/tf_static` → **한 번 설정되면 변하지 않는 정적(Static) 변환 정보**
+
+### **✅ 실제 메시지 확인**
+```bash
+ros2 topic echo /tf
+```
+🔹 **출력 예시 (`geometry_msgs::msg::TransformStamped`)**
+```
+transforms:
+- header:
+    stamp:
+      sec: 1643812345
+    frame_id: "base_link"
+  child_frame_id: "laser"
+  transform:
+    translation:
+      x: 1.0
+      y: 0.0
+      z: 0.2
+    rotation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+```
+✅ **즉, `sendTransform()`은 내부적으로 `/tf` 토픽에 메시지를 퍼블리싱하는 것과 동일한 역할을 수행**합니다.  
+
+---
+
+## **📌 정적(Static) TF 퍼블리싱 (`/tf_static`)**
+💡 특정 변환이 변하지 않는 경우 **정적 TF 브로드캐스터(`StaticTransformBroadcaster`)를 사용하여 `/tf_static` 토픽으로 퍼블리싱**할 수 있습니다.
+
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/static_transform_broadcaster.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+
+class StaticTFBroadcaster : public rclcpp::Node {
+public:
+    StaticTFBroadcaster() : Node("static_tf_broadcaster") {
+        static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+        broadcastStaticTransform();
+    }
+
+private:
+    void broadcastStaticTransform() {
+        geometry_msgs::msg::TransformStamped transform;
+        transform.header.stamp = this->get_clock()->now();
+        transform.header.frame_id = "map";
+        transform.child_frame_id = "robot_base";
+        transform.transform.translation.x = 2.0;
+        transform.transform.translation.y = 3.0;
+        transform.transform.translation.z = 0.0;
+        transform.transform.rotation.w = 1.0;
+
+        static_broadcaster_->sendTransform(transform);
+        RCLCPP_INFO(this->get_logger(), "정적 TF 퍼블리싱 완료!");
+    }
+
+    std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<StaticTFBroadcaster>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **이 코드는 `map → robot_base` 변환을 `/tf_static` 토픽에 퍼블리싱합니다.**  
+✅ **정적 변환을 사용하면 CPU 부하를 줄일 수 있음!**
+
+---
+
+## **📌 결론: `sendTransform()` vs 일반 ROS2 `publish()`**
+| 기능 | 일반 퍼블리싱 (`publish()`) | TF2 변환 브로드캐스팅 (`sendTransform()`) |
+|------|------------------|------------------|
+| **사용되는 클래스** | `rclcpp::Publisher<T>` | `tf2_ros::TransformBroadcaster` |
+| **메시지 타입** | `std_msgs::msg::String` 등 | `geometry_msgs::msg::TransformStamped` |
+| **토픽 이름** | 개발자가 지정 | `/tf` 또는 `/tf_static` (자동) |
+| **구독 방식** | 일반 ROS2 서브스크라이버 | `tf2_ros::TransformListener` |
+| **사용 목적** | 센서 데이터, 상태 정보 등 일반 메시지 전송 | 좌표 변환 정보를 퍼블리싱 |
+
+✅ **즉, `sendTransform()`은 내부적으로 `/tf` 토픽을 통해 메시지를 퍼블리싱하며, 일반적인 `publish()`와 동일한 개념이지만, TF2가 자동으로 메시지를 관리해준다는 점에서 차이가 있습니다.** 🚀
+
+
 <br>
 <br>
 <br>
 <br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
+
+# **📌 ROS2 TF2 사용 방법 - 구체적인 예제**
+ROS2에서 **TF2(Transform Framework 2)** 는 **로봇의 여러 좌표 프레임을 관리하고 변환하는 기능**을 제공합니다.  
+이 강의에서는 **TF2를 활용한 프레임 관리, 변환, 브로드캐스터, 리스너 구현**을 구체적인 예제와 함께 다룹니다.
+
+---
+
+## **📌 1️⃣ TF2 개념 정리**
+### **✅ TF2는 왜 필요한가?**
+로봇 시스템에서는 여러 개의 **좌표 프레임(Frame)** 이 존재합니다.
+예를 들어:
+- **"base_link"** (로봇 본체)
+- **"laser"** (LiDAR 센서)
+- **"camera"** (카메라)
+
+이때, **각 프레임 간의 변환(Transform)을 관리하고 좌표를 변환하는 역할을 하는 것이 TF2**입니다.
+
+---
+
+## **📌 2️⃣ TF2 브로드캐스터 (Transform Broadcaster)**
+💡 **TF2 브로드캐스터는 특정 프레임 간의 변환 정보를 계속 송신하는 역할**을 합니다.  
+예제: **"base_link" → "laser" 프레임 변환을 1초마다 브로드캐스트**
+
+---
+
+### **🔹 1. TF 브로드캐스터 코드 (`tf2_ros::TransformBroadcaster`)**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/transform_broadcaster.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+#include "tf2/LinearMath/Quaternion.h"
+
+class TFBroadcaster : public rclcpp::Node {
+public:
+    TFBroadcaster() : Node("tf_broadcaster") {
+        broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+        timer_ = this->create_wall_timer(std::chrono::seconds(1),
+            std::bind(&TFBroadcaster::broadcastTransform, this));
+    }
+
+private:
+    void broadcastTransform() {
+        geometry_msgs::msg::TransformStamped transform;
+        transform.header.stamp = this->get_clock()->now();
+        transform.header.frame_id = "base_link";
+        transform.child_frame_id = "laser";
+        transform.transform.translation.x = 1.0;
+        transform.transform.translation.y = 0.0;
+        transform.transform.translation.z = 0.2;
+
+        tf2::Quaternion q;
+        q.setRPY(0, 0, 0);  // 회전 없음
+        transform.transform.rotation.x = q.x();
+        transform.transform.rotation.y = q.y();
+        transform.transform.rotation.z = q.z();
+        transform.transform.rotation.w = q.w();
+
+        broadcaster_->sendTransform(transform);
+        RCLCPP_INFO(this->get_logger(), "base_link -> laser 변환 브로드캐스트 중...");
+    }
+
+    std::shared_ptr<tf2_ros::TransformBroadcaster> broadcaster_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<TFBroadcaster>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **1초마다 "base_link" → "laser" 변환 정보를 `/tf` 토픽으로 퍼블리싱**  
+✅ **TF2는 내부적으로 `/tf` 토픽을 사용하여 모든 변환을 공유함**  
+
+---
+
+## **📌 3️⃣ TF2 리스너 (Transform Listener)**
+💡 **TF2 리스너는 브로드캐스터가 송신한 변환 정보를 구독하고, 좌표 변환을 수행하는 역할**을 합니다.  
+예제: **"laser"의 위치를 "base_link" 기준으로 가져오기**
+
+---
+
+### **🔹 2. TF 리스너 코드 (`tf2_ros::TransformListener`)**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+
+class TFListener : public rclcpp::Node {
+public:
+    TFListener() : Node("tf_listener") {
+        tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+        tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+        timer_ = this->create_wall_timer(std::chrono::seconds(1),
+            std::bind(&TFListener::lookupTransform, this));
+    }
+
+private:
+    void lookupTransform() {
+        try {
+            geometry_msgs::msg::TransformStamped transform;
+            transform = tf_buffer_->lookupTransform("base_link", "laser", tf2::TimePointZero);
+
+            RCLCPP_INFO(this->get_logger(), "laser 좌표 (x: %f, y: %f, z: %f)",
+                        transform.transform.translation.x,
+                        transform.transform.translation.y,
+                        transform.transform.translation.z);
+        } catch (tf2::TransformException &ex) {
+            RCLCPP_WARN(this->get_logger(), "TF 조회 실패: %s", ex.what());
+        }
+    }
+
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<TFListener>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **TF 리스너가 `/tf` 토픽에서 "base_link" → "laser" 변환 정보를 수신**  
+✅ **`lookupTransform("base_link", "laser", tf2::TimePointZero)`를 사용하여 현재 변환 값을 조회**  
+✅ **조회 실패 시 `TransformException`을 처리하여 안전하게 예외 방지**
+
+---
+
+## **📌 4️⃣ TF2를 활용한 좌표 변환**
+💡 **TF2는 특정 프레임에서 다른 프레임으로 좌표를 변환할 수 있습니다.**  
+예제: **"laser" 좌표 `(x=2, y=1, z=0)`를 "base_link" 기준으로 변환하기**
+
+---
+
+### **🔹 3. TF2 좌표 변환 코드**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "geometry_msgs/msg/point_stamped.hpp"
+
+class TFTransformExample : public rclcpp::Node {
+public:
+    TFTransformExample() : Node("tf_transform_example") {
+        tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+        tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+        timer_ = this->create_wall_timer(std::chrono::seconds(1),
+            std::bind(&TFTransformExample::transformPoint, this));
+    }
+
+private:
+    void transformPoint() {
+        try {
+            geometry_msgs::msg::TransformStamped transformStamped;
+            transformStamped = tf_buffer_->lookupTransform("base_link", "laser", tf2::TimePointZero);
+
+            geometry_msgs::msg::PointStamped laser_point;
+            laser_point.header.frame_id = "laser";
+            laser_point.header.stamp = this->get_clock()->now();
+            laser_point.point.x = 2.0;
+            laser_point.point.y = 1.0;
+            laser_point.point.z = 0.0;
+
+            geometry_msgs::msg::PointStamped base_link_point;
+            tf2::doTransform(laser_point, base_link_point, transformStamped);
+
+            RCLCPP_INFO(this->get_logger(), "변환된 좌표 (x: %f, y: %f, z: %f)",
+                        base_link_point.point.x, base_link_point.point.y, base_link_point.point.z);
+        } catch (tf2::TransformException &ex) {
+            RCLCPP_WARN(this->get_logger(), "좌표 변환 실패: %s", ex.what());
+        }
+    }
+
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+```
+✅ **`doTransform()`을 사용하여 "laser" 기준 좌표 `(2,1,0)`를 "base_link" 기준으로 변환**  
+✅ **TF2를 사용하면 여러 프레임 간의 좌표 변환을 쉽게 수행할 수 있음**
+
+---
+
+## **📌 최종 정리**
+| 기능 | C++ 클래스/메서드 | 설명 |
+|------|----------------|------------------------------|
+| **TF 브로드캐스터** | `tf2_ros::TransformBroadcaster` | 프레임 변환을 `/tf` 토픽으로 송신 |
+| **TF 리스너** | `tf2_ros::TransformListener` | 변환 데이터를 수신하여 저장 |
+| **좌표 변환** | `tf2::doTransform()` | 특정 프레임 기준 좌표 변환 |
+
+✅ **이제 ROS2에서 C++을 활용하여 TF2를 제대로 활용할 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
 <br>
 <br>
 <br>
 <br>
 <br>
 
+# **11. ROS2 파라미터 서버 및 C++에서의 활용**  
+ROS2에서는 **파라미터(Parameters)를 사용하여 노드의 동작을 동적으로 설정**할 수 있습니다.  
+이를 통해 **하드코딩 없이 노드 실행 중에 설정값을 변경**할 수 있습니다.  
+이번 강의에서는 **ROS2의 `rclcpp::Parameter`를 이용한 파라미터 선언 및 활용, 그리고 동적 업데이트(`rclcpp::ParameterEventHandler`) 방법을 구체적인 예제와 함께 설명**합니다.
+
+---
+
+## **📌 1️⃣ `rclcpp::Parameter`와 파라미터 선언**
+### **✅ ROS2에서 파라미터란?**
+- **ROS1의 파라미터 서버와 달리, ROS2에서는 각 노드가 자체적으로 파라미터를 관리**합니다.
+- **파라미터는 ROS2 런타임 동안 값을 유지하며, 노드 실행 중에 변경 가능**합니다.
+- 노드가 실행 중일 때, **`ros2 param set` 명령어를 사용하여 값을 수정 가능**합니다.
+
+---
+
+### **🔹 1. 기본 파라미터 선언 및 사용 (`declare_parameter()`)**
+💡 **ROS2에서는 `declare_parameter()`를 사용하여 파라미터를 선언하고, `get_parameter()`로 값을 가져올 수 있습니다.**  
+
+```cpp
+#include "rclcpp/rclcpp.hpp"
+
+class ParameterExample : public rclcpp::Node {
+public:
+    ParameterExample() : Node("parameter_example") {
+        // ✅ 파라미터 선언 (기본값 지정)
+        this->declare_parameter<std::string>("robot_name", "TurtleBot");
+        this->declare_parameter<int>("max_speed", 5);
+
+        // ✅ 파라미터 값 가져오기
+        std::string robot_name = this->get_parameter("robot_name").as_string();
+        int max_speed = this->get_parameter("max_speed").as_int();
+
+        RCLCPP_INFO(this->get_logger(), "로봇 이름: %s", robot_name.c_str());
+        RCLCPP_INFO(this->get_logger(), "최대 속도: %d", max_speed);
+    }
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<ParameterExample>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **이제 `robot_name`과 `max_speed` 파라미터를 선언하고 가져올 수 있습니다.**  
+✅ **`declare_parameter()`를 사용하여 기본값을 설정할 수 있습니다.**
+
+---
+
+### **🔹 2. 런타임 중 파라미터 변경 (`ros2 param set`)**
+노드를 실행한 후, **터미널에서 파라미터 값을 변경할 수 있습니다.**  
+```bash
+ros2 param set /parameter_example robot_name "RoboMaster"
+ros2 param set /parameter_example max_speed 10
+```
+📌 **그러나 위 명령어로 값을 변경해도, 코드 내에서 즉시 반영되지 않습니다.**  
+📌 이를 해결하려면 **파라미터 변경을 감지하는 기능(`rclcpp::ParameterEventHandler`)이 필요**합니다.
+
+---
+
+## **📌 2️⃣ 동적 파라미터 업데이트 (`rclcpp::ParameterEventHandler`)**
+💡 **ROS2에서는 `rclcpp::ParameterEventHandler`를 사용하여 파라미터 변경을 실시간으로 감지하고, 업데이트할 수 있습니다.**  
+이 방법을 사용하면 **노드를 다시 실행하지 않고도 설정값을 동적으로 변경**할 수 있습니다.
+
+---
+
+### **🔹 3. 동적 파라미터 업데이트 코드 (`rclcpp::ParameterEventHandler`)**
+💡 **파라미터가 변경될 때마다 자동으로 콜백 함수가 실행되도록 설정합니다.**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp/parameter_event_handler.hpp"
+
+class DynamicParameterNode : public rclcpp::Node {
+public:
+    DynamicParameterNode() : Node("dynamic_parameter_node") {
+        // ✅ 파라미터 선언 (기본값 포함)
+        this->declare_parameter<std::string>("robot_name", "TurtleBot");
+        this->declare_parameter<int>("max_speed", 5);
+
+        // ✅ 현재 파라미터 값 출력
+        RCLCPP_INFO(this->get_logger(), "초기 로봇 이름: %s", 
+                    this->get_parameter("robot_name").as_string().c_str());
+        RCLCPP_INFO(this->get_logger(), "초기 최대 속도: %d", 
+                    this->get_parameter("max_speed").as_int());
+
+        // ✅ 파라미터 이벤트 핸들러 생성
+        param_event_handler_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+
+        // ✅ 특정 파라미터의 변경을 감지하는 콜백 등록
+        robot_name_cb_handle_ = param_event_handler_->add_parameter_callback(
+            "robot_name",
+            [this](const rclcpp::Parameter &param) {
+                RCLCPP_INFO(this->get_logger(), "로봇 이름 변경: %s", param.as_string().c_str());
+            });
+
+        max_speed_cb_handle_ = param_event_handler_->add_parameter_callback(
+            "max_speed",
+            [this](const rclcpp::Parameter &param) {
+                RCLCPP_INFO(this->get_logger(), "최대 속도 변경: %d", param.as_int());
+            });
+    }
+
+private:
+    std::shared_ptr<rclcpp::ParameterEventHandler> param_event_handler_;
+    std::shared_ptr<rclcpp::ParameterCallbackHandle> robot_name_cb_handle_;
+    std::shared_ptr<rclcpp::ParameterCallbackHandle> max_speed_cb_handle_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<DynamicParameterNode>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+
+✅ **파라미터가 변경될 때마다 자동으로 콜백 함수 실행!**  
+✅ **`rclcpp::ParameterEventHandler`를 사용하여 특정 파라미터의 변경을 감지할 수 있음!**  
+
+---
+
+### **🔹 4. 실행 후 동적 파라미터 변경**
+```bash
+ros2 run my_package dynamic_parameter_node
+```
+✅ **초기 파라미터 값 출력**
+```
+[INFO] [dynamic_parameter_node]: 초기 로봇 이름: TurtleBot
+[INFO] [dynamic_parameter_node]: 초기 최대 속도: 5
+```
+
+✅ **터미널에서 값 변경 후 자동 업데이트**
+```bash
+ros2 param set /dynamic_parameter_node robot_name "RoboMaster"
+ros2 param set /dynamic_parameter_node max_speed 20
+```
+✅ **변경된 값이 실시간으로 적용됨**
+```
+[INFO] [dynamic_parameter_node]: 로봇 이름 변경: RoboMaster
+[INFO] [dynamic_parameter_node]: 최대 속도 변경: 20
+```
+💡 **이제 노드를 다시 실행하지 않아도, 동적으로 파라미터 변경이 가능합니다!** 🚀
+
+---
+
+## **📌 3️⃣ 노드 내부에서 파라미터 업데이트 (`set_parameter()`)**
+💡 **ROS2 노드 내부에서 직접 파라미터 값을 수정할 수도 있습니다.**
+```cpp
+this->set_parameter(rclcpp::Parameter("robot_name", "SuperBot"));
+this->set_parameter(rclcpp::Parameter("max_speed", 15));
+```
+✅ **이 코드를 실행하면, 현재 노드의 파라미터가 변경됩니다.**
+
+---
+
+## **📌 최종 정리**
+| 기능 | 사용 함수 | 설명 |
+|------|---------|------------------------------|
+| **파라미터 선언** | `declare_parameter()` | 노드가 실행될 때 파라미터를 선언 |
+| **파라미터 가져오기** | `get_parameter()` | 현재 파라미터 값을 조회 |
+| **파라미터 변경** | `set_parameter()` | 노드 내부에서 파라미터 값 변경 |
+| **동적 파라미터 감지** | `rclcpp::ParameterEventHandler` | 파라미터가 변경될 때 콜백 실행 |
+
+✅ **이제 ROS2에서 C++을 활용하여 동적으로 파라미터를 관리할 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
+
+<br>
+<br>
+<br>
+
+**📌 네, ROS2의 `launch` 파일과 `YAML` 파일을 사용하여 노드의 파라미터를 설정하는 것은 바로 위에서 설명한 파라미터(`rclcpp::Parameter`, `rclcpp::ParameterEventHandler`)와 직접적으로 관련이 있습니다.**  
+
+ROS2에서는 파라미터를 **런타임에 변경할 수도 있지만, 실행할 때 미리 설정할 수도 있습니다.**  
+- **Launch 파일** (`.launch.py`) → 여러 노드를 실행하면서 파라미터를 설정  
+- **YAML 파일** (`.yaml`) → 파라미터를 구조적으로 저장하고, 여러 실행에서 동일한 설정을 유지  
+
+---
+
+# **📌 1️⃣ Launch 파일에서 파라미터 설정 (`.launch.py`)**
+**Launch 파일을 사용하면, 노드를 실행할 때 파라미터를 직접 설정할 수 있습니다.**  
+💡 **예제:** `launch` 파일에서 `robot_name`과 `max_speed` 파라미터를 설정  
+
+---
+
+### **🔹 1. `launch` 파일 (`my_launch.py`)**
+```python
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    return LaunchDescription([
+        Node(
+            package='my_package',
+            executable='dynamic_parameter_node',
+            name='dynamic_parameter_node',
+            parameters=[
+                {"robot_name": "LaunchBot"},
+                {"max_speed": 15}
+            ]
+        )
+    ])
+```
+✅ **Launch 파일을 실행하면 `robot_name="LaunchBot"`, `max_speed=15`로 설정됨!**  
+
+---
+
+### **🔹 2. Launch 파일 실행**
+```bash
+ros2 launch my_package my_launch.py
+```
+✅ **실행하면, 노드에서 초기 파라미터 값을 설정한 값으로 가져옴**  
+```
+[INFO] [dynamic_parameter_node]: 초기 로봇 이름: LaunchBot
+[INFO] [dynamic_parameter_node]: 초기 최대 속도: 15
+```
+💡 **즉, `launch` 파일을 사용하면 실행할 때 파라미터를 쉽게 설정 가능!**
+
+---
+
+# **📌 2️⃣ YAML 파일에서 파라미터 설정 (`.yaml`)**
+**YAML 파일을 사용하면 파라미터를 한 곳에 정리하여 저장할 수 있습니다.**  
+💡 **YAML 파일을 사용하면, 여러 실행에서 같은 설정을 쉽게 적용 가능!**
+
+---
+
+### **🔹 1. YAML 파일 생성 (`params.yaml`)**
+```yaml
+dynamic_parameter_node:
+  ros__parameters:
+    robot_name: "YAMLBot"
+    max_speed: 20
+```
+✅ **이 파일을 사용하면 노드가 실행될 때 `robot_name="YAMLBot"`, `max_speed=20`으로 설정됨!**  
+
+---
+
+### **🔹 2. YAML 파일을 `launch` 파일에서 사용**
+```python
+from launch import LaunchDescription
+from launch_ros.actions import Node
+import os
+
+def generate_launch_description():
+    config_file = os.path.join(
+        os.path.expanduser('~'), 'ros2_ws', 'src', 'my_package', 'config', 'params.yaml'
+    )
+
+    return LaunchDescription([
+        Node(
+            package='my_package',
+            executable='dynamic_parameter_node',
+            name='dynamic_parameter_node',
+            parameters=[config_file]  # ✅ YAML 파일 로드
+        )
+    ])
+```
+✅ **이제 YAML 파일의 내용을 사용하여 파라미터가 설정됨!**  
+
+---
+
+### **🔹 3. 터미널에서 YAML 파일을 직접 적용**
+```bash
+ros2 run my_package dynamic_parameter_node --ros-args --params-file ~/ros2_ws/src/my_package/config/params.yaml
+```
+✅ **YAML 파일을 사용하여 실행하면, 설정된 값이 자동으로 적용됨!**
+```
+[INFO] [dynamic_parameter_node]: 초기 로봇 이름: YAMLBot
+[INFO] [dynamic_parameter_node]: 초기 최대 속도: 20
+```
+
+---
+
+# **📌 3️⃣ `launch` 파일 vs `YAML` 파일 vs `ros2 param set` 비교**
+| 설정 방법 | 설명 | 사용 시점 |
+|-----------|------------------------------|------------|
+| **Launch 파일 (`.launch.py`)** | 실행할 때 파라미터 설정 가능 | **노드 실행 시** |
+| **YAML 파일 (`.yaml`)** | 파라미터를 파일로 관리하여 재사용 가능 | **노드 실행 시** |
+| **`ros2 param set` 명령어** | 노드 실행 후 실시간 변경 가능 | **노드 실행 중** |
+
+✅ **즉, `launch`와 `YAML` 파일을 사용하면 노드 실행 시 미리 설정 가능하고, `ros2 param set`을 사용하면 실행 중에 값을 변경할 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
+<br>
+<br>
+<br>
+
+### **✅ 네, 맞습니다! ROS2에서 파라미터를 설정하는 방법은 크게 3가지입니다.**  
+1. **Launch 파일 (`.launch.py`)** - 노드 실행 시 파라미터를 설정  
+2. **YAML 파일 (`.yaml`)** - 파라미터를 파일로 저장하여 재사용  
+3. **`ros2 param set` 명령어** - 노드 실행 후 실시간으로 변경  
+
+---
+
+## **📌 1️⃣ Launch 파일을 사용한 파라미터 설정**
+💡 **Launch 파일에서 직접 파라미터를 정의하여 실행할 때 적용**  
+```python
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    return LaunchDescription([
+        Node(
+            package='my_package',
+            executable='dynamic_parameter_node',
+            name='dynamic_parameter_node',
+            parameters=[
+                {"robot_name": "LaunchBot"},
+                {"max_speed": 15}
+            ]
+        )
+    ])
+```
+✅ **Launch 파일 실행**
+```bash
+ros2 launch my_package my_launch.py
+```
+✅ **출력 결과**
+```
+[INFO] [dynamic_parameter_node]: 초기 로봇 이름: LaunchBot
+[INFO] [dynamic_parameter_node]: 초기 최대 속도: 15
+```
+📌 **Launch 파일은 여러 노드를 한 번에 실행할 때 유용**  
+
+---
+
+## **📌 2️⃣ YAML 파일을 사용한 파라미터 설정**
+💡 **파라미터를 YAML 파일에 저장하여 재사용 가능**  
+```yaml
+dynamic_parameter_node:
+  ros__parameters:
+    robot_name: "YAMLBot"
+    max_speed: 20
+```
+✅ **Launch 파일에서 YAML 적용**
+```python
+import os
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    config_file = os.path.join(
+        os.path.expanduser('~'), 'ros2_ws', 'src', 'my_package', 'config', 'params.yaml'
+    )
+
+    return LaunchDescription([
+        Node(
+            package='my_package',
+            executable='dynamic_parameter_node',
+            name='dynamic_parameter_node',
+            parameters=[config_file]
+        )
+    ])
+```
+✅ **또는 터미널에서 직접 실행 가능**
+```bash
+ros2 run my_package dynamic_parameter_node --ros-args --params-file ~/ros2_ws/src/my_package/config/params.yaml
+```
+✅ **출력 결과**
+```
+[INFO] [dynamic_parameter_node]: 초기 로봇 이름: YAMLBot
+[INFO] [dynamic_parameter_node]: 초기 최대 속도: 20
+```
+📌 **YAML 파일을 사용하면 파라미터 값을 깔끔하게 정리하고 쉽게 수정 가능**  
+
+---
+
+## **📌 3️⃣ `ros2 param set` 명령어를 사용한 실시간 변경**
+💡 **노드 실행 중에 값을 동적으로 변경할 때 사용**  
+```bash
+ros2 param set /dynamic_parameter_node robot_name "RoboMaster"
+ros2 param set /dynamic_parameter_node max_speed 25
+```
+✅ **변경된 값이 실시간으로 적용됨**
+```
+[INFO] [dynamic_parameter_node]: 로봇 이름 변경: RoboMaster
+[INFO] [dynamic_parameter_node]: 최대 속도 변경: 25
+```
+📌 **실시간으로 값을 변경할 수 있지만, 노드를 다시 실행하면 초기화됨**  
+
+---
+
+## **📌 3가지 설정 방법 비교**
+| 설정 방법 | 적용 시점 | 특징 |
+|-----------|----------------|--------------------------------|
+| **Launch 파일 (`.launch.py`)** | 노드 실행 시 | 실행할 때마다 새로운 값 설정 가능 |
+| **YAML 파일 (`.yaml`)** | 노드 실행 시 | 설정 파일을 저장하고 재사용 가능 |
+| **`ros2 param set` 명령어** | 노드 실행 중 | 실시간으로 값 변경 가능 |
+
+✅ **이제 ROS2에서 파라미터를 설정하는 3가지 방법을 확실히 이해했네요!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+# **12. ROS2 로깅 및 디버깅**
+ROS2에서 **로깅(Logging)과 디버깅(Debugging)** 은 시스템 상태를 모니터링하고, 오류를 분석하며, 최적화하는 데 중요한 역할을 합니다.  
+이번 강의에서는 **C++ 기반의 ROS2 로깅 기능과 디버깅 도구(`ros2 bag`, `gdb`, `valgrind`)를 구체적인 예제와 함께 설명**합니다.
+
+---
+
+# **📌 1️⃣ ROS2 로깅 (`RCLCPP_INFO`, `RCLCPP_DEBUG`, `RCLCPP_WARN`, `RCLCPP_ERROR`)**
+### **✅ ROS2에서 로깅이란?**
+로깅(Logging)이란 프로그램이 실행되는 동안 **출력하는 로그 메시지**를 의미합니다.  
+- `printf()`나 `std::cout`을 직접 사용하는 것은 비효율적이므로, **ROS2에서는 `RCLCPP_*` 매크로를 사용하여 로그를 남깁니다.**
+- 로그는 `INFO`, `DEBUG`, `WARN`, `ERROR`, `FATAL`의 다섯 가지 레벨이 있으며, **필요한 정보만 출력할 수 있도록 조정할 수 있습니다.**  
+
+---
+
+## **🔹 1. ROS2 로깅 예제**
+💡 **각 로그 레벨을 출력하는 예제 코드**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+
+class LoggingExample : public rclcpp::Node {
+public:
+    LoggingExample() : Node("logging_example") {
+        RCLCPP_INFO(this->get_logger(), "이것은 INFO 메시지입니다.");
+        RCLCPP_DEBUG(this->get_logger(), "이것은 DEBUG 메시지입니다.");
+        RCLCPP_WARN(this->get_logger(), "이것은 WARN 메시지입니다.");
+        RCLCPP_ERROR(this->get_logger(), "이것은 ERROR 메시지입니다.");
+        RCLCPP_FATAL(this->get_logger(), "이것은 FATAL 메시지입니다.");
+    }
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<LoggingExample>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **이 코드를 실행하면, 로그 메시지가 출력됩니다.**  
+```bash
+[INFO] [logging_example]: 이것은 INFO 메시지입니다.
+[WARN] [logging_example]: 이것은 WARN 메시지입니다.
+[ERROR] [logging_example]: 이것은 ERROR 메시지입니다.
+[FATAL] [logging_example]: 이것은 FATAL 메시지입니다.
+```
+❌ `DEBUG` 메시지는 기본적으로 출력되지 않습니다.
+
+---
+
+## **🔹 2. 로깅 레벨 변경 (`--ros-args --log-level`)**
+기본적으로 `INFO` 이상의 로그만 출력되지만, **터미널에서 로깅 레벨을 변경할 수 있습니다.**
+```bash
+ros2 run my_package logging_example --ros-args --log-level DEBUG
+```
+✅ **출력 결과 (`DEBUG` 메시지도 출력됨)**
+```
+[DEBUG] [logging_example]: 이것은 DEBUG 메시지입니다.
+```
+📌 **즉, 로그 레벨을 조정하면 원하는 수준의 메시지만 출력할 수 있습니다.**  
+
+---
+
+## **🔹 3. 로깅 메시지에 변수 포함하기**
+```cpp
+int speed = 5;
+std::string robot_name = "TurtleBot";
+RCLCPP_INFO(this->get_logger(), "로봇: %s, 속도: %d", robot_name.c_str(), speed);
+```
+✅ **결과**
+```
+[INFO] [logging_example]: 로봇: TurtleBot, 속도: 5
+```
+
+---
+
+# **📌 2️⃣ ros2 bag을 활용한 데이터 기록 및 재생**
+### **✅ `ros2 bag` 이란?**
+`ros2 bag`은 **ROS2의 토픽 데이터를 기록하고 다시 재생하는 기능**을 제공합니다.
+- **로봇이 수집한 데이터를 저장하여 후처리 및 분석 가능**
+- **시뮬레이션 없이 실제 데이터를 활용하여 테스트 가능**
+
+---
+
+## **🔹 1. ROS2 토픽 데이터 기록 (`ros2 bag record`)**
+💡 **예제: `/chatter` 토픽 데이터를 기록하기**
+```bash
+ros2 bag record -o my_bag /chatter
+```
+✅ **my_bag/ 디렉토리에 `chatter` 토픽의 데이터가 저장됨.**  
+```bash
+my_bag/
+ ├── metadata.yaml
+ ├── my_bag_0.db3
+```
+
+---
+
+## **🔹 2. 기록된 데이터 확인 (`ros2 bag info`)**
+```bash
+ros2 bag info my_bag
+```
+✅ **출력**
+```
+Files: my_bag_0.db3
+Topic: /chatter (std_msgs/msg/String) [100 messages]
+```
+
+---
+
+## **🔹 3. 기록된 데이터 재생 (`ros2 bag play`)**
+```bash
+ros2 bag play my_bag
+```
+✅ **저장된 `chatter` 토픽의 데이터가 다시 퍼블리싱됨!**  
+📌 **이제 시뮬레이션 없이 실제 데이터를 테스트 가능**
+
+---
+
+# **📌 3️⃣ C++ 디버깅 (`gdb`, `valgrind`)**
+### **✅ `gdb` (GNU Debugger) 사용법**
+`gdb`는 **C++ 프로그램의 런타임 오류를 디버깅할 때 사용하는 도구**입니다.
+
+---
+
+## **🔹 1. gdb로 ROS2 노드 실행**
+```bash
+gdb --args ros2 run my_package my_node
+```
+✅ **gdb 프롬프트에서 실행**
+```gdb
+(gdb) run
+```
+📌 **이제 프로그램이 실행되며, 오류가 발생하면 디버깅 가능**
+
+---
+
+## **🔹 2. 코드 실행 중단 및 디버깅**
+- **브레이크포인트 설정**
+```gdb
+(gdb) break my_node.cpp:20  # 20번째 줄에서 실행 중지
+```
+- **한 줄씩 실행**
+```gdb
+(gdb) next
+```
+- **현재 변수 값 확인**
+```gdb
+(gdb) print variable_name
+```
+
+---
+
+### **✅ `valgrind` (메모리 누수 검사)**
+`valgrind`는 **메모리 누수와 비효율적인 메모리 사용을 찾아주는 도구**입니다.
+
+---
+
+## **🔹 1. `valgrind`로 ROS2 노드 실행**
+```bash
+valgrind --leak-check=full --show-leak-kinds=all ros2 run my_package my_node
+```
+✅ **출력 예제**
+```
+==12345== LEAK SUMMARY:
+==12345== 100 bytes in 5 blocks definitely lost in loss record 1 of 2
+```
+📌 **메모리 누수가 발생한 경우, 어느 코드에서 발생했는지 확인 가능**
+
+---
+
+## **📌 4️⃣ 최종 정리**
+| 기능 | 명령어 | 설명 |
+|------|----------------|------------------------------|
+| **ROS2 로깅** | `RCLCPP_INFO()` | 노드의 상태를 출력 |
+| **로깅 레벨 변경** | `--ros-args --log-level` | DEBUG, WARN, ERROR 선택 가능 |
+| **ros2 bag 기록** | `ros2 bag record -o my_bag /chatter` | `/chatter` 토픽을 저장 |
+| **ros2 bag 재생** | `ros2 bag play my_bag` | 기록된 데이터를 다시 퍼블리싱 |
+| **GDB 디버깅** | `gdb --args ros2 run my_package my_node` | 런타임 디버깅 수행 |
+| **Valgrind 메모리 검사** | `valgrind --leak-check=full ros2 run my_package my_node` | 메모리 누수 감지 |
+
+✅ **이제 ROS2에서 로깅, 데이터 기록 및 디버깅을 효과적으로 수행할 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+# **13. ROS2 파일 I/O 및 데이터 처리**
+ROS2에서 파일 입출력(File I/O) 및 데이터 처리는 센서 로그 저장, 설정값 로드, 로봇 경로 데이터 분석 등 다양한 상황에서 필요합니다.  
+이번 강의에서는 **C++에서 `std::fstream`을 활용한 파일 입출력, CSV/JSON/YAML 데이터 처리 방법**을 예제와 함께 다룹니다.  
+
+---
+
+# **📌 1️⃣ `std::fstream`을 활용한 파일 입출력**
+C++ 표준 라이브러리에서 제공하는 `std::fstream`을 사용하면 **텍스트 파일 및 바이너리 파일을 읽고 쓸 수 있습니다.**
+
+---
+
+### **🔹 1. 텍스트 파일 쓰기 (`std::ofstream`)**
+💡 **"data.txt" 파일에 데이터를 저장하는 예제**
+```cpp
+#include <iostream>
+#include <fstream>
+
+int main() {
+    std::ofstream file("data.txt");  // 파일 생성 및 열기
+    if (!file) {
+        std::cerr << "파일을 열 수 없습니다!" << std::endl;
+        return 1;
+    }
+
+    file << "ROS2 파일 입출력 예제\n";
+    file << "로봇 속도: 5.5 m/s\n";
+    
+    file.close();
+    std::cout << "파일 저장 완료!" << std::endl;
+    return 0;
+}
+```
+✅ **실행 후 `data.txt` 내용**
+```
+ROS2 파일 입출력 예제
+로봇 속도: 5.5 m/s
+```
+
+---
+
+### **🔹 2. 텍스트 파일 읽기 (`std::ifstream`)**
+💡 **파일에서 데이터를 읽어오는 예제**
+```cpp
+#include <iostream>
+#include <fstream>
+#include <string>
+
+int main() {
+    std::ifstream file("data.txt");  // 파일 열기
+    if (!file) {
+        std::cerr << "파일을 열 수 없습니다!" << std::endl;
+        return 1;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::cout << line << std::endl;
+    }
+
+    file.close();
+    return 0;
+}
+```
+✅ **출력**
+```
+ROS2 파일 입출력 예제
+로봇 속도: 5.5 m/s
+```
+
+---
+
+### **🔹 3. 바이너리 파일 입출력 (`std::ios::binary`)**
+💡 **이진 데이터 저장 및 로드 예제 (센서 데이터 등)**
+```cpp
+#include <iostream>
+#include <fstream>
+
+int main() {
+    double sensor_data = 42.195;
+    
+    // ✅ 바이너리 파일 저장
+    std::ofstream out("sensor_data.bin", std::ios::binary);
+    out.write(reinterpret_cast<char*>(&sensor_data), sizeof(sensor_data));
+    out.close();
+    
+    // ✅ 바이너리 파일 읽기
+    double loaded_data;
+    std::ifstream in("sensor_data.bin", std::ios::binary);
+    in.read(reinterpret_cast<char*>(&loaded_data), sizeof(loaded_data));
+    in.close();
+
+    std::cout << "불러온 센서 데이터: " << loaded_data << std::endl;
+    return 0;
+}
+```
+✅ **출력**
+```
+불러온 센서 데이터: 42.195
+```
+📌 **바이너리 파일은 텍스트가 아니라 16진수 값으로 저장됨. 빠르게 읽고 쓸 수 있음!**  
+
+---
+
+# **📌 2️⃣ CSV 파일 처리**
+💡 **CSV(Comma-Separated Values) 파일은 데이터 로그 저장에 자주 사용됩니다.**  
+
+---
+
+### **🔹 1. CSV 파일 쓰기**
+💡 **로봇의 속도를 저장하는 `speed_log.csv` 파일을 생성**
+```cpp
+#include <iostream>
+#include <fstream>
+
+int main() {
+    std::ofstream file("speed_log.csv");
+    file << "Time,Speed\n";
+    file << "1,1.5\n";
+    file << "2,2.0\n";
+    file << "3,2.5\n";
+    file.close();
+    
+    std::cout << "CSV 저장 완료!" << std::endl;
+    return 0;
+}
+```
+✅ **파일 내용 (`speed_log.csv`)**
+```
+Time,Speed
+1,1.5
+2,2.0
+3,2.5
+```
+
+---
+
+### **🔹 2. CSV 파일 읽기**
+💡 **파일에서 데이터를 읽어 출력하는 예제**
+```cpp
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+int main() {
+    std::ifstream file("speed_log.csv");
+    std::string line;
+    
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string time, speed;
+        std::getline(ss, time, ',');
+        std::getline(ss, speed, ',');
+
+        std::cout << "시간: " << time << ", 속도: " << speed << std::endl;
+    }
+    
+    return 0;
+}
+```
+✅ **출력**
+```
+시간: Time, 속도: Speed
+시간: 1, 속도: 1.5
+시간: 2, 속도: 2.0
+시간: 3, 속도: 2.5
+```
+📌 **첫 번째 행(헤더)을 무시하려면 `std::getline(file, line);`을 추가**  
+
+---
+
+# **📌 3️⃣ JSON 파일 처리 (`nlohmann/json`)**
+💡 **C++에서는 `nlohmann/json` 라이브러리를 사용하여 JSON 파일을 쉽게 처리할 수 있습니다.**
+
+---
+
+### **🔹 1. JSON 파일 쓰기**
+💡 **로봇의 설정을 `config.json`에 저장**
+```cpp
+#include <iostream>
+#include <fstream>
+#include "nlohmann/json.hpp"
+
+using json = nlohmann::json;
+
+int main() {
+    json config;
+    config["robot_name"] = "TurtleBot";
+    config["max_speed"] = 5.0;
+    config["sensors"] = {"LiDAR", "Camera"};
+
+    std::ofstream file("config.json");
+    file << config.dump(4);  // ✅ JSON을 보기 좋게 저장
+    file.close();
+
+    std::cout << "JSON 저장 완료!" << std::endl;
+    return 0;
+}
+```
+✅ **파일 내용 (`config.json`)**
+```json
+{
+    "robot_name": "TurtleBot",
+    "max_speed": 5.0,
+    "sensors": ["LiDAR", "Camera"]
+}
+```
+
+---
+
+### **🔹 2. JSON 파일 읽기**
+```cpp
+std::ifstream file("config.json");
+json config;
+file >> config;
+file.close();
+
+std::cout << "로봇 이름: " << config["robot_name"] << std::endl;
+std::cout << "최대 속도: " << config["max_speed"] << std::endl;
+```
+✅ **출력**
+```
+로봇 이름: TurtleBot
+최대 속도: 5
+```
+
+---
+
+# **📌 4️⃣ YAML 파일 처리 (`yaml-cpp`)**
+💡 **YAML은 ROS2에서 설정 파일로 자주 사용됩니다.**
+
+---
+
+### **🔹 1. YAML 파일 쓰기 (`config.yaml`)**
+```cpp
+#include <iostream>
+#include <fstream>
+#include "yaml-cpp/yaml.h"
+
+int main() {
+    YAML::Node config;
+    config["robot_name"] = "TurtleBot";
+    config["max_speed"] = 5.0;
+    
+    std::ofstream file("config.yaml");
+    file << config;
+    file.close();
+
+    std::cout << "YAML 저장 완료!" << std::endl;
+    return 0;
+}
+```
+✅ **파일 내용 (`config.yaml`)**
+```yaml
+robot_name: TurtleBot
+max_speed: 5.0
+```
+
+---
+
+### **🔹 2. YAML 파일 읽기**
+```cpp
+YAML::Node config = YAML::LoadFile("config.yaml");
+std::cout << "로봇 이름: " << config["robot_name"].as<std::string>() << std::endl;
+std::cout << "최대 속도: " << config["max_speed"].as<double>() << std::endl;
+```
+✅ **출력**
+```
+로봇 이름: TurtleBot
+최대 속도: 5.0
+```
+
+---
+
+# **📌 최종 정리**
+| 포맷 | 읽기/쓰기 방식 | 라이브러리 |
+|------|--------------|------------|
+| **TXT** | `std::fstream` | C++ 기본 |
+| **CSV** | `std::fstream` + `std::stringstream` | C++ 기본 |
+| **JSON** | `nlohmann/json` | `nlohmann/json.hpp` |
+| **YAML** | `yaml-cpp` | `yaml-cpp` |
+
+✅ **이제 ROS2에서 다양한 파일 형식을 C++로 다룰 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+# **14. ROS2 플러그인과 C++ 인터페이스**
+ROS2에서는 **플러그인(`pluginlib`)과 C++ 인터페이스(`rclcpp::NodeInterfaces`)** 를 활용하여 **모듈화된 기능을 동적으로 로드하고, 노드의 다양한 기능을 인터페이스로 관리**할 수 있습니다.  
+이번 강의에서는 **ROS2 플러그인 시스템과 C++ 인터페이스를 활용하는 방법을 예제와 함께 설명**합니다.
+
+---
+
+# **📌 1️⃣ ROS2 플러그인 시스템 (`pluginlib`)**
+## **✅ `pluginlib`란?**
+- **ROS2의 `pluginlib`는 특정 기능을 독립적인 플러그인으로 구현하고, 런타임에 동적으로 로드하는 기능**을 제공합니다.
+- 즉, **소스 코드를 수정하지 않고도 새로운 기능을 추가하거나 교체할 수 있도록 설계**할 수 있습니다.
+- 플러그인은 주로 **로봇 제어 알고리즘, 센서 드라이버, 플래너 등의 모듈화된 기능**을 만들 때 사용됩니다.
+
+---
+
+## **📌 2️⃣ `pluginlib`를 활용한 ROS2 플러그인 개발**
+💡 **예제: 다양한 이동 전략(Strategy)을 플러그인으로 구현하여 런타임에 로드하기**
+
+---
+
+### **🔹 1. 플러그인 인터페이스 정의**
+먼저, 플러그인이 공통으로 구현해야 하는 **인터페이스 클래스**를 정의합니다.
+
+📌 **`include/my_plugin_base/movement_strategy.hpp`**
+```cpp
+#ifndef MOVEMENT_STRATEGY_HPP
+#define MOVEMENT_STRATEGY_HPP
+
+#include <string>
+
+class MovementStrategy {
+public:
+    virtual ~MovementStrategy() = default;
+    virtual std::string move() = 0;
+};
+
+#endif // MOVEMENT_STRATEGY_HPP
+```
+✅ **모든 이동 전략(플러그인)은 `MovementStrategy` 클래스를 상속받아야 함**  
+✅ **`move()` 함수는 각 플러그인에서 다르게 구현됨**
+
+---
+
+### **🔹 2. 플러그인 구현 (예: 직선 이동)**
+📌 **`src/straight_movement.cpp`**
+```cpp
+#include "my_plugin_base/movement_strategy.hpp"
+#include <pluginlib/class_list_macros.hpp>
+
+class StraightMovement : public MovementStrategy {
+public:
+    std::string move() override {
+        return "로봇이 직선으로 이동합니다.";
+    }
+};
+
+// ✅ 이 클래스를 플러그인으로 등록
+PLUGINLIB_EXPORT_CLASS(StraightMovement, MovementStrategy)
+```
+✅ **`StraightMovement`는 `MovementStrategy` 인터페이스를 구현한 플러그인 클래스**  
+✅ **`PLUGINLIB_EXPORT_CLASS()` 매크로를 사용하여 플러그인으로 등록**
+
+---
+
+### **🔹 3. 플러그인 구현 (예: 곡선 이동)**
+📌 **`src/curved_movement.cpp`**
+```cpp
+#include "my_plugin_base/movement_strategy.hpp"
+#include <pluginlib/class_list_macros.hpp>
+
+class CurvedMovement : public MovementStrategy {
+public:
+    std::string move() override {
+        return "로봇이 곡선으로 이동합니다.";
+    }
+};
+
+// ✅ 곡선 이동 전략을 플러그인으로 등록
+PLUGINLIB_EXPORT_CLASS(CurvedMovement, MovementStrategy)
+```
+✅ **여러 개의 이동 전략을 각각 플러그인으로 등록 가능**
+
+---
+
+### **🔹 4. 플러그인 호출 및 실행**
+📌 **`src/plugin_loader.cpp`**
+```cpp
+#include <iostream>
+#include <pluginlib/class_loader.hpp>
+#include "my_plugin_base/movement_strategy.hpp"
+
+int main() {
+    try {
+        // ✅ 플러그인 로더 생성
+        pluginlib::ClassLoader<MovementStrategy> loader("my_plugin_package", "MovementStrategy");
+
+        // ✅ "StraightMovement" 플러그인 로드
+        auto straight_movement = loader.createSharedInstance("StraightMovement");
+        std::cout << straight_movement->move() << std::endl;
+
+        // ✅ "CurvedMovement" 플러그인 로드
+        auto curved_movement = loader.createSharedInstance("CurvedMovement");
+        std::cout << curved_movement->move() << std::endl;
+
+    } catch (const pluginlib::PluginlibException &ex) {
+        std::cerr << "플러그인 로드 실패: " << ex.what() << std::endl;
+    }
+    return 0;
+}
+```
+✅ **런타임에 `StraightMovement`와 `CurvedMovement` 플러그인을 동적으로 로드**  
+✅ **소스 코드 수정 없이 새로운 플러그인을 추가할 수 있음!**  
+
+---
+
+### **🔹 5. 실행 결과**
+```bash
+로봇이 직선으로 이동합니다.
+로봇이 곡선으로 이동합니다.
+```
+📌 **즉, `pluginlib`를 사용하면 새로운 기능을 쉽게 추가하고, 코드 수정 없이 확장 가능** 🚀
+
+---
+
+# **📌 3️⃣ ROS2 C++ 인터페이스 (`rclcpp::NodeInterfaces`)**
+## **✅ `rclcpp::NodeInterfaces`란?**
+ROS2에서는 **각 노드가 여러 인터페이스를 가질 수 있도록 `rclcpp::NodeInterfaces`를 제공**합니다.  
+이를 활용하면 **노드의 구성 요소를 더 모듈화하여 관리할 수 있습니다.**
+
+---
+
+## **📌 4️⃣ `rclcpp::NodeInterfaces` 활용 예제**
+💡 **각각의 인터페이스(`rclcpp::NodeLogging`, `rclcpp::NodeClock`)를 직접 가져와서 사용**
+
+---
+
+### **🔹 1. 기본 노드 구현**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+
+class MyNode : public rclcpp::Node {
+public:
+    MyNode() : Node("my_node") {
+        RCLCPP_INFO(this->get_logger(), "노드가 시작되었습니다.");
+    }
+};
+```
+✅ **일반적인 ROS2 노드의 로깅 기능(`get_logger()`)은 내부적으로 `rclcpp::NodeLogging`을 사용**
+
+---
+
+### **🔹 2. `rclcpp::NodeInterfaces`를 활용한 노드**
+📌 **인터페이스를 직접 접근하여 활용**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+
+class MyNodeWithInterfaces : public rclcpp::Node {
+public:
+    MyNodeWithInterfaces() : Node("my_node_with_interfaces") {
+        auto logging = this->get_node_logging_interface();
+        auto clock = this->get_node_clock_interface();
+
+        RCLCPP_INFO(logging->get_logger(), "이 노드는 인터페이스 기반으로 동작합니다.");
+        RCLCPP_INFO(logging->get_logger(), "현재 시간: %ld", clock->get_clock()->now().nanoseconds());
+    }
+};
+```
+✅ **`get_node_logging_interface()`를 사용하여 로깅 기능을 직접 가져와 활용**  
+✅ **`get_node_clock_interface()`를 사용하여 현재 ROS2 시간 가져오기 가능**
+
+---
+
+### **🔹 3. 실행 결과**
+```bash
+[INFO] [my_node_with_interfaces]: 이 노드는 인터페이스 기반으로 동작합니다.
+[INFO] [my_node_with_interfaces]: 현재 시간: 1643812345123456789
+```
+📌 **이 방식은 노드의 특정 기능을 독립적으로 분리하여 재사용하기 쉽게 만듦** 🚀
+
+---
+
+# **📌 최종 정리**
+| 기능 | 설명 | 주요 클래스 |
+|------|------------------|------------------|
+| **ROS2 플러그인 (`pluginlib`)** | 런타임에 동적으로 모듈 로드 | `pluginlib::ClassLoader` |
+| **ROS2 C++ 인터페이스** | 노드의 구성 요소를 인터페이스로 관리 | `rclcpp::NodeInterfaces` |
+| **로깅 인터페이스** | 노드의 로깅 기능 | `rclcpp::NodeLogging` |
+| **시간 인터페이스** | ROS2 시간 정보 제공 | `rclcpp::NodeClock` |
+
+✅ **이제 ROS2에서 플러그인(`pluginlib`)을 활용하여 확장 가능한 구조를 만들고, C++ 인터페이스(`rclcpp::NodeInterfaces`)를 사용하여 모듈화된 노드를 개발할 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+# **15. ROS2 네비게이션과 SLAM C++ 적용**
+ROS2에서는 **Navigation2 (Nav2) 패키지와 SLAM (Simultaneous Localization and Mapping) 패키지**를 활용하여 **자율 주행 로봇의 경로 계획과 맵 생성**을 수행할 수 있습니다.  
+이번 강의에서는 **C++을 활용하여 Navigation2 및 SLAM Toolbox, Cartographer SLAM을 제어하는 방법과, ROS2에서 C++ 기반으로 경로 계획을 구현하는 방법**을 설명합니다.
+
+---
+
+# **📌 1️⃣ ROS2 Navigation2 개요 (`nav2_bringup`, `nav2_lifecycle_manager`)**
+## **✅ Navigation2란?**
+- **ROS2 Navigation2 (Nav2)** 는 자율 주행 로봇의 이동을 위한 패키지로, 경로 생성과 주행을 담당합니다.
+- `nav2_bringup` 패키지를 사용하여 **Navigation2를 실행**할 수 있습니다.
+- `nav2_lifecycle_manager`를 활용하면 **각 네비게이션 모듈을 시작/중지/제어할 수 있습니다.**
+
+---
+
+## **📌 2️⃣ C++ 코드로 Navigation2 제어**
+💡 **C++을 사용하여 Navigation2를 실행하고, 상태를 제어하는 방법을 설명합니다.**
+
+---
+
+### **🔹 1. Navigation2 실행 (`nav2_bringup`)**
+💡 **TurtleBot3에서 Navigation2 실행 예제**
+```bash
+export TURTLEBOT3_MODEL=waffle
+ros2 launch nav2_bringup tb3_simulation_launch.py
+```
+✅ **이 명령어를 실행하면 TurtleBot3가 Gazebo에서 Navigation2를 실행하며 주행 가능**  
+
+---
+
+### **🔹 2. C++ 코드로 Navigation2 상태 관리 (`nav2_lifecycle_manager`)**
+💡 **C++에서 Navigation2의 생명주기(lifecycle) 상태를 제어하기**
+📌 **코드: Navigation2 Lifecycle 활성화**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "nav2_msgs/srv/manage_lifecycle_nodes.hpp"
+
+class Nav2Manager : public rclcpp::Node {
+public:
+    Nav2Manager() : Node("nav2_manager") {
+        client_ = this->create_client<nav2_msgs::srv::ManageLifecycleNodes>("/lifecycle_manager_navigation/manage_nodes");
+
+        while (!client_->wait_for_service(std::chrono::seconds(2))) {
+            RCLCPP_WARN(this->get_logger(), "Navigation2 서비스 대기 중...");
+        }
+        activate_navigation();
+    }
+
+private:
+    void activate_navigation() {
+        auto request = std::make_shared<nav2_msgs::srv::ManageLifecycleNodes::Request>();
+        request->command = nav2_msgs::srv::ManageLifecycleNodes::Request::ACTIVATE;
+
+        auto result = client_->async_send_request(request);
+        RCLCPP_INFO(this->get_logger(), "Navigation2 활성화 요청 전송...");
+    }
+
+    rclcpp::Client<nav2_msgs::srv::ManageLifecycleNodes>::SharedPtr client_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<Nav2Manager>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **`nav2_lifecycle_manager`를 사용하여 Navigation2를 활성화하고, 로봇을 주행할 수 있도록 설정 가능**  
+✅ **이제 Navigation2가 활성화되었으므로 경로를 설정할 수 있음!**  
+
+---
+
+# **📌 3️⃣ SLAM Toolbox 및 Cartographer SLAM을 C++ 코드로 제어**
+## **✅ SLAM Toolbox와 Cartographer란?**
+- **SLAM Toolbox**: ROS2에서 사용되는 경량 SLAM 패키지 (2D SLAM에 적합)
+- **Cartographer**: Google에서 개발한 SLAM 알고리즘 (고품질의 2D/3D SLAM 지원)
+
+---
+
+### **🔹 1. SLAM Toolbox 실행**
+💡 **TurtleBot3에서 SLAM Toolbox 실행**
+```bash
+export TURTLEBOT3_MODEL=waffle
+ros2 launch slam_toolbox online_async_launch.py
+```
+✅ **이제 `/map` 토픽에서 생성된 맵을 수신할 수 있음**  
+
+---
+
+### **🔹 2. C++ 코드로 맵 저장 요청 (`map_saver_cli`)**
+💡 **SLAM이 완료된 후 맵을 저장하는 C++ 코드**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "nav_msgs/srv/save_map.hpp"
+
+class SaveMapClient : public rclcpp::Node {
+public:
+    SaveMapClient() : Node("save_map_client") {
+        client_ = this->create_client<nav_msgs::srv::SaveMap>("/map_saver/save_map");
+
+        while (!client_->wait_for_service(std::chrono::seconds(2))) {
+            RCLCPP_WARN(this->get_logger(), "맵 저장 서비스 대기 중...");
+        }
+        save_map();
+    }
+
+private:
+    void save_map() {
+        auto request = std::make_shared<nav_msgs::srv::SaveMap::Request>();
+        request->map_url = "my_map";
+        request->map_mode = "trinary";
+        
+        auto result = client_->async_send_request(request);
+        RCLCPP_INFO(this->get_logger(), "맵 저장 요청 전송...");
+    }
+
+    rclcpp::Client<nav_msgs::srv::SaveMap>::SharedPtr client_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<SaveMapClient>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **이제 `my_map.pgm`과 `my_map.yaml` 파일이 저장됨!**  
+
+---
+
+# **📌 4️⃣ ROS2에서 C++로 경로 계획 (`nav_msgs::Path`)**
+## **✅ `nav_msgs::Path`란?**
+- 로봇이 목표 지점까지 이동하는 경로를 **경로 계획(Path Planning)** 을 통해 생성함.
+- `nav_msgs::Path` 메시지는 로봇의 경로를 표현하는 표준 메시지 타입.
+
+---
+
+### **🔹 1. 경로 생성 및 퍼블리싱**
+💡 **C++에서 목표 경로(`nav_msgs::Path`)를 생성하여 퍼블리싱하는 코드**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+
+class PathPublisher : public rclcpp::Node {
+public:
+    PathPublisher() : Node("path_publisher") {
+        publisher_ = this->create_publisher<nav_msgs::msg::Path>("/planned_path", 10);
+        timer_ = this->create_wall_timer(std::chrono::seconds(1),
+            std::bind(&PathPublisher::publishPath, this));
+    }
+
+private:
+    void publishPath() {
+        nav_msgs::msg::Path path;
+        path.header.stamp = this->get_clock()->now();
+        path.header.frame_id = "map";
+
+        for (int i = 0; i < 5; i++) {
+            geometry_msgs::msg::PoseStamped pose;
+            pose.header = path.header;
+            pose.pose.position.x = i;
+            pose.pose.position.y = i * 0.5;
+            pose.pose.position.z = 0.0;
+            pose.pose.orientation.w = 1.0;
+            path.poses.push_back(pose);
+        }
+
+        publisher_->publish(path);
+        RCLCPP_INFO(this->get_logger(), "경로 퍼블리싱 완료!");
+    }
+
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<PathPublisher>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **경로 계획 데이터를 `/planned_path` 토픽으로 퍼블리싱**  
+✅ **Rviz2에서 `/planned_path` 토픽을 시각화 가능!**  
+
+---
+
+# **📌 최종 정리**
+| 기능 | 사용 패키지 | 설명 |
+|------|-----------|------------------------------|
+| **Navigation2 활성화** | `nav2_lifecycle_manager` | 네비게이션 모듈 제어 |
+| **SLAM 실행** | `slam_toolbox`, `cartographer` | 맵 생성 및 저장 |
+| **맵 저장** | `map_saver_cli` | 생성된 맵을 `.pgm`, `.yaml`로 저장 |
+| **경로 계획** | `nav_msgs::Path` | 목표 경로 생성 및 퍼블리싱 |
+
+✅ **이제 ROS2에서 C++을 활용하여 Navigation2, SLAM, 경로 계획을 구현할 수 있습니다!** 🚀  
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+# **16. ROS2에서 C++로 AI 및 컴퓨터 비전 적용**
+ROS2에서 **AI 및 컴퓨터 비전을 C++로 적용하는 방법**을 다루며,  
+- **OpenCV (`cv_bridge`)를 활용한 이미지 처리**  
+- **YOLO 및 ONNX Runtime을 활용한 딥러닝 모델 실행**  
+- **ROS2에서 `rclcpp::Subscription<ImageMsg>`을 활용한 실시간 이미지 스트리밍 처리**  
+
+등을 자세히 설명합니다.
+
+---
+
+# **📌 1️⃣ OpenCV를 활용한 이미지 처리 (`cv_bridge`)**
+## **✅ `cv_bridge`란?**
+- ROS2의 이미지 메시지 (`sensor_msgs::msg::Image`)를 OpenCV의 `cv::Mat` 형식으로 변환할 수 있도록 도와줌
+- 이를 활용하면 ROS2에서 **카메라 데이터 처리, 이미지 변환, 객체 감지** 등의 작업을 쉽게 수행 가능
+
+---
+
+### **🔹 1. ROS2에서 OpenCV와 `cv_bridge` 설치**
+```bash
+sudo apt install ros-humble-vision-opencv
+sudo apt install ros-humble-cv-bridge
+```
+✅ **설치 후 `CMakeLists.txt`에서 OpenCV와 `cv_bridge` 추가**  
+📌 **`CMakeLists.txt` 설정**
+```cmake
+find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
+
+target_link_libraries(${PROJECT_NAME}
+  ${OpenCV_LIBS}
+  cv_bridge::cv_bridge
+)
+```
+
+---
+
+## **🔹 2. ROS2에서 카메라 영상을 받아 OpenCV로 처리**
+💡 **ROS2 카메라 노드에서 이미지를 구독하고 OpenCV로 변환하여 표시하는 코드**
+📌 **`image_processor.cpp`**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "cv_bridge/cv_bridge.h"
+#include "opencv2/opencv.hpp"
+
+class ImageProcessor : public rclcpp::Node {
+public:
+    ImageProcessor() : Node("image_processor") {
+        subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
+            "/camera/image_raw", 10,
+            std::bind(&ImageProcessor::imageCallback, this, std::placeholders::_1));
+    }
+
+private:
+    void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
+        try {
+            cv::Mat img = cv_bridge::toCvCopy(msg, "bgr8")->image;
+            cv::imshow("Camera Feed", img);
+            cv::waitKey(1);
+        } catch (cv_bridge::Exception &e) {
+            RCLCPP_ERROR(this->get_logger(), "cv_bridge 변환 실패: %s", e.what());
+        }
+    }
+
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<ImageProcessor>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **실시간으로 `/camera/image_raw` 토픽의 이미지를 OpenCV로 변환하여 화면에 표시**  
+✅ **`cv_bridge::toCvCopy()`를 사용하여 `sensor_msgs::msg::Image` → `cv::Mat` 변환**  
+✅ **카메라가 없을 경우 `ros2 run image_tools cam2image` 실행하여 테스트 가능**  
+
+---
+
+# **📌 2️⃣ YOLO 및 ONNX Runtime을 활용한 딥러닝 모델 실행**
+## **✅ ONNX Runtime이란?**
+- 다양한 **딥러닝 프레임워크(TensorFlow, PyTorch 등)에서 학습한 모델을 실행**할 수 있도록 하는 **고성능 추론 엔진**
+- ROS2 C++에서 **YOLO, ResNet 등의 모델을 실행 가능**  
+- **GPU 가속(CUDA, TensorRT) 지원**
+
+---
+
+## **🔹 1. ONNX Runtime 설치**
+```bash
+sudo apt install ros-humble-onnx-runtime
+```
+
+---
+
+## **🔹 2. YOLO 모델을 ONNX 형식으로 변환**
+💡 **YOLOv8을 사용하여 `yolov8.onnx` 모델을 다운로드**
+```python
+from ultralytics import YOLO
+model = YOLO("yolov8n.pt")
+model.export(format="onnx")
+```
+✅ **이제 `yolov8n.onnx` 파일이 생성됨. ROS2 C++에서 실행 가능!**  
+
+---
+
+## **🔹 3. ROS2 C++에서 YOLO 모델 로드 및 실행**
+📌 **`yolo_detector.cpp`**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "cv_bridge/cv_bridge.h"
+#include "opencv2/opencv.hpp"
+#include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+
+class YoloDetector : public rclcpp::Node {
+public:
+    YoloDetector() : Node("yolo_detector") {
+        session_ = std::make_unique<Ort::Session>(env_, "yolov8n.onnx", Ort::SessionOptions{});
+        subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
+            "/camera/image_raw", 10,
+            std::bind(&YoloDetector::imageCallback, this, std::placeholders::_1));
+    }
+
+private:
+    void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
+        cv::Mat img = cv_bridge::toCvCopy(msg, "bgr8")->image;
+
+        // ✅ ONNX 모델을 사용하여 YOLO 추론 수행 (예제 코드)
+        // 실제 ONNX 모델 실행은 `session_->Run(...)`을 통해 진행됨
+
+        RCLCPP_INFO(this->get_logger(), "YOLO 객체 탐지 완료!");
+        cv::imshow("YOLO Detection", img);
+        cv::waitKey(1);
+    }
+
+    Ort::Env env_{ORT_LOGGING_LEVEL_WARNING, "YOLOv8"};
+    std::unique_ptr<Ort::Session> session_;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<YoloDetector>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **YOLOv8 ONNX 모델을 불러와 ROS2 카메라 이미지에서 객체를 탐지**  
+✅ **실제 추론 결과를 사용하려면 `session_->Run()`을 사용하여 바운딩 박스를 그려야 함**  
+
+---
+
+# **📌 3️⃣ ROS2에서 `rclcpp::Subscription<ImageMsg>`을 활용한 이미지 스트림 처리**
+## **✅ 이미지 스트림이란?**
+- **카메라 센서 또는 이미지 데이터 스트림을 실시간으로 처리**하는 기능  
+- ROS2에서는 `sensor_msgs::msg::Image` 형식의 메시지를 이용하여 이미지를 주고받음  
+- **YOLO, OpenCV 필터 적용, 이미지 저장, 로깅 등에 활용 가능**
+
+---
+
+### **🔹 1. 이미지 저장 노드 구현**
+📌 **`image_saver.cpp`**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "cv_bridge/cv_bridge.h"
+#include "opencv2/opencv.hpp"
+
+class ImageSaver : public rclcpp::Node {
+public:
+    ImageSaver() : Node("image_saver") {
+        subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
+            "/camera/image_raw", 10,
+            std::bind(&ImageSaver::imageCallback, this, std::placeholders::_1));
+    }
+
+private:
+    void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
+        cv::Mat img = cv_bridge::toCvCopy(msg, "bgr8")->image;
+        std::string filename = "saved_image.jpg";
+        cv::imwrite(filename, img);
+        RCLCPP_INFO(this->get_logger(), "이미지 저장 완료: %s", filename.c_str());
+    }
+
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<ImageSaver>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **실시간 이미지 스트림을 구독하고 자동으로 저장**  
+✅ **이제 ROS2 카메라 데이터를 쉽게 저장하고 분석할 수 있음**  
+
+---
+
+# **📌 최종 정리**
+| 기능 | 설명 | 주요 클래스 |
+|------|----------------------|----------------------|
+| **OpenCV 처리** | `cv_bridge`로 ROS 이미지 변환 | `cv_bridge::toCvCopy()` |
+| **YOLO 딥러닝 적용** | ONNX Runtime으로 YOLO 실행 | `Ort::Session` |
+| **이미지 스트리밍** | 실시간 이미지 처리 | `rclcpp::Subscription<ImageMsg>` |
+
+✅ **이제 ROS2에서 C++을 활용하여 AI 및 컴퓨터 비전을 적용할 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+# **17. ROS2 최적화 및 배포**
+ROS2에서 **성능 최적화, 크로스 컴파일, Docker를 활용한 배포**는 경량화 및 배포 자동화를 위한 핵심 기술입니다.  
+이 강의에서는 **C++ 기반 ROS2 애플리케이션의 성능을 최적화하고, 크로스 컴파일 및 Docker를 활용하여 배포하는 방법을 설명**합니다.
+
+---
+
+# **📌 1️⃣ 성능 최적화 (`rclcpp::Timer` 활용)**
+## **✅ `rclcpp::Timer`란?**
+- ROS2에서는 **CPU 사용량을 줄이고, 효율적인 주기적 실행을 위해 `rclcpp::Timer`를 활용**합니다.
+- **`spin()`을 계속 실행하는 방식보다 `Timer`를 사용하면 더 가벼운 구조**를 만들 수 있습니다.
+
+---
+
+## **🔹 1. `spin()`과 `rclcpp::Timer` 비교**
+💡 **일반적인 `spin()` 사용 예제**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+
+class HighLoadNode : public rclcpp::Node {
+public:
+    HighLoadNode() : Node("high_load_node") {
+        while (rclcpp::ok()) {
+            RCLCPP_INFO(this->get_logger(), "CPU 부하 발생!");
+        }
+    }
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<HighLoadNode>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **CPU를 과도하게 사용하여 부하가 높아지는 문제 발생**  
+
+---
+
+💡 **`rclcpp::Timer`를 활용하여 CPU 사용량을 줄이는 최적화 예제**
+```cpp
+#include "rclcpp/rclcpp.hpp"
+
+class OptimizedNode : public rclcpp::Node {
+public:
+    OptimizedNode() : Node("optimized_node") {
+        timer_ = this->create_wall_timer(std::chrono::seconds(1),
+            std::bind(&OptimizedNode::timerCallback, this));
+    }
+
+private:
+    void timerCallback() {
+        RCLCPP_INFO(this->get_logger(), "1초마다 실행 중...");
+    }
+
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<OptimizedNode>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ **CPU 사용량을 줄이고 주기적으로 실행하는 구조로 최적화됨!**  
+✅ **ROS2에서 주기적인 작업을 실행할 때 `while` 대신 `rclcpp::Timer`를 적극 활용할 것!**  
+
+---
+
+# **📌 2️⃣ 크로스 컴파일 및 경량화 (`ros2 cross_compile`)**
+## **✅ 크로스 컴파일이란?**
+- **크로스 컴파일(Cross Compilation)** 은 **개발 환경과 실행 환경이 다른 경우** 사용할 수 있는 기술입니다.
+- **x86_64 (데스크탑) → ARM (라즈베리파이, NVIDIA Jetson 등) 환경으로 빌드 가능**
+- `ros2 cross_compile`을 사용하면 **개발 PC에서 타겟 아키텍처용 실행 파일을 미리 빌드 가능**  
+
+---
+
+## **🔹 1. `ros2 cross_compile` 설치**
+```bash
+pip install -U colcon-common-extensions ros_cross_compile
+```
+
+---
+
+## **🔹 2. 크로스 컴파일 실행**
+💡 **라즈베리파이(ARM64)용 ROS2 패키지 크로스 컴파일**
+```bash
+ros2 run ros_cross_compile cross_compile --arch aarch64 --os ubuntu --rosdistro humble --workspace ~/ros2_ws
+```
+✅ **x86 환경에서 ARM64용 실행 파일을 빌드 가능**  
+✅ **라즈베리파이, Jetson 등 임베디드 환경에서 ROS2 실행 가능!**
+
+---
+
+# **📌 3️⃣ Docker를 활용한 ROS2 배포**
+## **✅ Docker란?**
+- **Docker를 활용하면 ROS2 환경을 컨테이너화하여 손쉽게 배포 가능**
+- **개발 환경과 배포 환경을 일치시켜 문제를 최소화할 수 있음**
+
+---
+
+## **🔹 1. Dockerfile을 사용한 ROS2 컨테이너 생성**
+📌 **`Dockerfile`**
+```dockerfile
+# ✅ 1. ROS2 Humble 이미지 기반
+FROM osrf/ros:humble-desktop
+
+# ✅ 2. 작업 디렉토리 설정
+WORKDIR /ros2_ws
+
+# ✅ 3. ROS2 패키지 복사 및 빌드
+COPY . /ros2_ws
+RUN apt update && rosdep install --from-paths src --ignore-src -r -y
+RUN colcon build
+
+# ✅ 4. 환경 변수 설정
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /ros2_ws/install/setup.bash" >> ~/.bashrc
+
+# ✅ 5. 기본 실행 명령어
+CMD ["bash"]
+```
+
+✅ **Docker로 ROS2 개발 환경을 일관되게 유지 가능**  
+✅ **다른 개발자가 동일한 환경에서 실행 가능!**
+
+---
+
+## **🔹 2. Docker 컨테이너 빌드 및 실행**
+💡 **Docker 이미지 빌드**
+```bash
+docker build -t my_ros2_image .
+```
+💡 **Docker 컨테이너 실행**
+```bash
+docker run -it --rm --net=host my_ros2_image
+```
+✅ **Docker에서 ROS2 실행 가능!**
+
+---
+
+## **🔹 3. `ros_entrypoint.sh`를 활용한 자동 실행**
+📌 **`ros_entrypoint.sh`**
+```bash
+#!/bin/bash
+set -e
+source /opt/ros/humble/setup.bash
+exec "$@"
+```
+📌 **Dockerfile에서 적용**
+```dockerfile
+COPY ros_entrypoint.sh /ros_entrypoint.sh
+ENTRYPOINT ["/ros_entrypoint.sh"]
+```
+✅ **컨테이너 실행 시 자동으로 ROS2 환경이 설정됨**  
+
+---
+
+# **📌 최종 정리**
+| 최적화/배포 방식 | 설명 | 주요 기술 |
+|------|------------------|------------------|
+| **CPU 최적화** | `rclcpp::Timer`를 사용하여 CPU 부하 줄이기 | `rclcpp::Timer` |
+| **크로스 컴파일** | x86 환경에서 ARM64용 ROS2 빌드 | `ros2 cross_compile` |
+| **Docker 배포** | 컨테이너로 ROS2 환경 제공 | `Dockerfile`, `ros_entrypoint.sh` |
+
+✅ **이제 ROS2 애플리케이션을 최적화하고, 크로스 컴파일 및 Docker로 배포할 수 있습니다!** 🚀  
+추가 질문이 있으면 언제든지 물어보세요! 😊
+
+
+<br>
+<br>
+<br>
+
+# **📌 ROS2 Docker 활용 및 배포 예제**
+Docker를 활용하면 **ROS2 개발 환경을 컨테이너로 패키징하여 손쉽게 배포 및 실행**할 수 있습니다.  
+이 강의에서는 **다양한 Docker 예제를 통해 ROS2 컨테이너를 구축, 실행, 네트워크 설정, 다중 컨테이너 구성** 등을 다룹니다.
+
+---
+
+# **📌 1️⃣ Docker 기본 개념 및 설치**
+## **✅ Docker란?**
+- **컨테이너(Container) 기반 가상화 기술**  
+- **호스트 OS와 독립적으로 실행되는 가벼운 실행 환경 제공**  
+- **ROS2 개발 및 배포 시 동일한 환경을 유지할 수 있음**  
+
+---
+
+## **🔹 1. Docker 설치**
+💡 **Ubuntu에서 Docker 설치**
+```bash
+sudo apt update
+sudo apt install -y docker.io
+```
+✅ **Docker 서비스 실행 및 자동 시작 설정**
+```bash
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+✅ **사용자를 `docker` 그룹에 추가하여 `sudo` 없이 실행 가능**
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+---
+
+# **📌 2️⃣ 기본적인 ROS2 Docker 컨테이너 실행**
+## **✅ 1. 공식 ROS2 Docker 이미지 실행**
+💡 **기본 ROS2 컨테이너 실행**
+```bash
+docker run -it --rm osrf/ros:humble bash
+```
+✅ **이제 ROS2가 실행되는 컨테이너 환경이 제공됨**
+
+---
+
+## **✅ 2. GUI 지원 컨테이너 실행 (RViz2 사용 가능)**
+💡 **X11을 활용한 GUI 애플리케이션 실행**
+```bash
+xhost +
+docker run -it --rm --net=host -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix osrf/ros:humble bash
+```
+✅ **컨테이너 내에서 `rviz2` 실행 가능**
+```bash
+rviz2
+```
+📌 **X11을 활용하면 컨테이너 내 GUI 프로그램을 실행할 수 있음!** 🚀  
+
+---
+
+# **📌 3️⃣ Dockerfile을 사용하여 ROS2 개발 환경 설정**
+## **✅ 1. ROS2 Docker 이미지 생성**
+💡 **ROS2 워크스페이스를 포함하는 Dockerfile 작성**
+📌 **`Dockerfile`**
+```dockerfile
+# ✅ 1. ROS2 Humble 기본 이미지 사용
+FROM osrf/ros:humble
+
+# ✅ 2. ROS2 환경 설정
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+
+# ✅ 3. ROS2 패키지 빌드 준비
+WORKDIR /ros2_ws
+COPY . /ros2_ws
+RUN apt update && rosdep install --from-paths src --ignore-src -r -y
+RUN colcon build
+
+# ✅ 4. 컨테이너 실행 시 자동으로 ROS2 환경 로드
+CMD ["bash"]
+```
+✅ **Docker 이미지 빌드**
+```bash
+docker build -t my_ros2_image .
+```
+✅ **컨테이너 실행**
+```bash
+docker run -it --rm my_ros2_image
+```
+📌 **이제 컨테이너 내에서 ROS2 패키지를 바로 실행 가능!**
+
+---
+
+# **📌 4️⃣ ROS2 노드 실행을 위한 Docker 구성**
+## **✅ 1. `ros_entrypoint.sh`를 활용한 자동 실행**
+💡 **컨테이너 실행 시 자동으로 ROS2 환경 설정**
+📌 **`ros_entrypoint.sh`**
+```bash
+#!/bin/bash
+set -e
+source /opt/ros/humble/setup.bash
+exec "$@"
+```
+📌 **Dockerfile에서 엔트리포인트 설정**
+```dockerfile
+COPY ros_entrypoint.sh /ros_entrypoint.sh
+ENTRYPOINT ["/ros_entrypoint.sh"]
+```
+✅ **이제 컨테이너 실행 시 ROS2 환경이 자동으로 설정됨**  
+
+---
+
+# **📌 5️⃣ 다중 컨테이너를 활용한 ROS2 시스템 구축 (`docker-compose`)**
+## **✅ 1. `docker-compose`를 활용한 다중 컨테이너 설정**
+💡 **여러 개의 ROS2 컨테이너를 동시에 실행하여 노드 간 통신 테스트**
+📌 **`docker-compose.yaml`**
+```yaml
+version: '3'
+services:
+  talker:
+    image: osrf/ros:humble
+    command: ros2 run demo_nodes_cpp talker
+    network_mode: "host"
+
+  listener:
+    image: osrf/ros:humble
+    command: ros2 run demo_nodes_cpp listener
+    network_mode: "host"
+```
+✅ **다중 컨테이너 실행**
+```bash
+docker-compose up
+```
+✅ **출력 예제**
+```
+talker_1  | Publishing: "Hello World"
+listener_1 | I heard: "Hello World"
+```
+📌 **Docker 컨테이너 간 ROS2 통신이 정상적으로 동작!** 🚀  
+
+---
+
+# **📌 6️⃣ Docker 컨테이너에서 ROS2 네트워크 설정**
+## **✅ 1. `--net=host` 옵션을 활용한 네트워크 공유**
+💡 **다른 호스트 및 컨테이너와 ROS2 노드 간 통신**
+```bash
+docker run -it --rm --net=host osrf/ros:humble
+```
+✅ **이제 컨테이너가 호스트 네트워크를 그대로 사용하여 ROS2 메시지 송수신 가능**  
+
+---
+
+## **✅ 2. `bridge` 네트워크 사용**
+💡 **컨테이너 간 ROS2 통신을 위해 `bridge` 네트워크 설정**
+```bash
+docker network create ros2_net
+docker run -it --rm --network=ros2_net --name talker osrf/ros:humble ros2 run demo_nodes_cpp talker
+docker run -it --rm --network=ros2_net --name listener osrf/ros:humble ros2 run demo_nodes_cpp listener
+```
+📌 **이제 `talker` 컨테이너와 `listener` 컨테이너가 `ros2_net` 네트워크를 통해 통신 가능!**
+
+---
+
+# **📌 7️⃣ 최적화된 ROS2 Docker 이미지 생성**
+## **✅ 1. `multi-stage build`를 활용한 경량화**
+💡 **개발 환경과 실행 환경을 분리하여 컨테이너 크기 최소화**
+📌 **`Dockerfile`**
+```dockerfile
+# ✅ 1. 빌드 환경 설정 (Full ROS2 설치)
+FROM osrf/ros:humble AS builder
+WORKDIR /ros2_ws
+COPY . /ros2_ws
+RUN apt update && rosdep install --from-paths src --ignore-src -r -y
+RUN colcon build
+
+# ✅ 2. 실행 환경 (최소한의 패키지만 포함)
+FROM osrf/ros:humble-runtime
+WORKDIR /ros2_ws
+COPY --from=builder /ros2_ws/install /ros2_ws/install
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /ros2_ws/install/setup.bash" >> ~/.bashrc
+
+CMD ["bash"]
+```
+✅ **이제 실행 환경은 경량화되고, 불필요한 빌드 도구가 포함되지 않음**  
+
+---
+
+# **📌 최종 정리**
+| 기능 | 설명 | 명령어 / 기술 |
+|------|------------------|------------------|
+| **기본 컨테이너 실행** | ROS2 기본 컨테이너 실행 | `docker run -it --rm osrf/ros:humble` |
+| **GUI 지원 실행** | RViz2 실행 가능 | `xhost + && docker run -e DISPLAY=$DISPLAY` |
+| **Dockerfile 활용** | ROS2 개발 환경 설정 | `docker build -t my_ros2 .` |
+| **자동 환경 설정** | `ros_entrypoint.sh` 사용 | `ENTRYPOINT ["/ros_entrypoint.sh"]` |
+| **다중 컨테이너 실행** | `docker-compose` 활용 | `docker-compose up` |
+| **네트워크 설정** | 컨테이너 간 ROS2 통신 | `docker network create ros2_net` |
+| **경량화** | `multi-stage build` 활용 | `FROM osrf/ros:humble-runtime` |
+
+✅ **이제 Docker를 활용하여 ROS2를 배포하고 최적화할 수 있습니다!** 🚀  
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
