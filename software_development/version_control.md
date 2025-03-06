@@ -45,6 +45,7 @@ git checkout [each branch]
 
 <br>  
 <br>
+
 [[git bundle]]  
 git init .  
 git add .
@@ -57,6 +58,7 @@ git clone -b master ./temp/file.bundle R2
 
 <br>
 <br>
+
 [[PYPI]]
 ## How to update PYPI (for only project manager)
 
