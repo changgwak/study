@@ -14,13 +14,13 @@
 
 <br>
 
-git push <원격 저장소 명> <branch 이름>
-git push origin master
+git push <원격 저장소 명> <branch 이름>  
+git push origin master  
 
 <br>
 
-git pull <원격 저장소 명> <branch 명>
-git pull origin master
+git pull <원격 저장소 명> <branch 명>  
+git pull origin master  
 
 
 <br>
