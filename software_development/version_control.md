@@ -11,10 +11,14 @@
 [git large file storage](https://git-lfs.com/)
 
 [There isn't anything to compare. Nothing to compare, branches are entirely different commit histories](https://stackoverflow.com/questions/23344320/there-isnt-anything-to-compare-nothing-to-compare-branches-are-entirely-diffe)
+
 <br>
+
 git push <원격 저장소 명> <branch 이름>
 git push origin master
+
 <br>
+
 git pull <원격 저장소 명> <branch 명>
 git pull origin master
 
