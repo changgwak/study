@@ -64,6 +64,7 @@ git clone -b master ./temp/file.bundle R2
 <br>
 <br>
 <br>
+
 ## how to uplaod on remote at first time.  
 generate git repo on git  
 modity default branch to master from main  
