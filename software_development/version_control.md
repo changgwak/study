@@ -69,10 +69,10 @@ git clone -b master ./temp/file.bundle R2
 generate git repo on git  
 modity default branch to master from main  
 git init .  
-git pull <address>  
+git pull [address]  
 git add .  
 git commit -m ""  
-git remote add origin <address>  
+git remote add origin [address]  
 git remote -v  
 git push origin master  
 
