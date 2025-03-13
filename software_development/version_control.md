@@ -62,6 +62,112 @@ git clone -b master ./temp/file.bundle R2
 
 <br>
 <br>
+<br>
+<br>
+## how to uplaod on remote at first time.  
+generate git repo on git  
+modity default branch to master from main  
+git init .  
+git pull <address>  
+git add .  
+git commit -m ""  
+git remote add origin <address>  
+git remote -v  
+git push origin master  
+
+
+<br>
+<br>
+<br>
+<br>
+
+### 🔗 **Git에서 Remote 연결 및 확인 방법**
+Git에서 원격(remote) 저장소를 연결하고, 현재 어떤 remote 주소가 설정되어 있는지 확인하는 방법.
+
+---
+
+## **1️⃣ 원격(remote) 저장소 연결하는 방법**
+Git에서 원격 저장소를 추가하려면 `git remote add` 명령어를 사용합니다.
+
+### ✅ **Git 원격 저장소 연결**
+```bash
+git remote add origin <원격 저장소 URL>
+```
+예를 들어, GitHub의 원격 저장소를 연결하려면 다음과 같이 입력합니다:
+```bash
+git remote add origin https://github.com/username/repository.git
+```
+- `origin` : 원격 저장소의 이름 (보통 기본값으로 `origin`을 사용함)
+- `<원격 저장소 URL>` : GitHub, GitLab, Bitbucket 등의 원격 저장소 주소
+
+---
+
+## **2️⃣ 연결된 Remote 저장소 확인하기**
+### ✅ **설정된 remote 목록 확인**
+```bash
+git remote -v
+```
+출력 예시:
+```
+origin  https://github.com/username/repository.git (fetch)
+origin  https://github.com/username/repository.git (push)
+```
+- `(fetch)`: 데이터를 가져올 때(fetch) 사용되는 URL
+- `(push)`: 변경 사항을 push할 때 사용되는 URL
+
+---
+
+## **3️⃣ 원격 저장소 변경하기**
+### ✅ **기존 remote URL 변경**
+만약 기존에 설정된 원격 저장소 URL을 변경하고 싶다면:
+```bash
+git remote set-url origin <새로운 원격 저장소 URL>
+```
+예시:
+```bash
+git remote set-url origin https://github.com/new-user/new-repository.git
+```
+
+---
+
+## **4️⃣ 원격 저장소 삭제하기**
+만약 기존 원격 저장소를 삭제하려면:
+```bash
+git remote remove origin
+```
+또는:
+```bash
+git remote rm origin
+```
+
+---
+
+## **5️⃣ 원격 저장소 이름 변경**
+예를 들어 `origin`을 `upstream`으로 바꾸고 싶다면:
+```bash
+git remote rename origin upstream
+```
+변경 후 다시 확인:
+```bash
+git remote -v
+```
+
+---
+
+### 🎯 **정리**
+| 명령어 | 설명 |
+|--------|------|
+| `git remote add origin <URL>` | 원격 저장소 추가 |
+| `git remote -v` | 설정된 원격 저장소 확인 |
+| `git remote set-url origin <새 URL>` | 원격 저장소 주소 변경 |
+| `git remote remove origin` | 원격 저장소 삭제 |
+| `git remote rename origin upstream` | 원격 저장소 이름 변경 |
+
+
+
+
+<br>
+<br>
 
 [[PYPI]]
 ## How to update PYPI (for only project manager)
