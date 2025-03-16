@@ -1,4 +1,4 @@
-Yes, I'm familiar with **Google glog**. It is a **C++ logging library** developed by Google, commonly used in large-scale software projects, including **robotics and ROS2 applications**. 
+ **Google glog**. It is a **C++ logging library** developed by Google, commonly used in large-scale software projects, including **robotics and ROS2 applications**. 
 
 ### **Key Features of Google glog**
 1. **Logging Levels**: Supports different severity levels:
