@@ -697,3 +697,229 @@ Each thread will generate its own log file:
 
 
 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+### **gflags: Google Command-Line Flag Library**
+**gflags**는 Google에서 개발한 **C++ 기반의 커맨드라인 플래그(옵션) 라이브러리**입니다.  
+즉, 프로그램 실행 시 **명령줄 인자를 쉽게 관리하고 파싱할 수 있도록 도와주는 라이브러리**입니다.
+
+#### **🔥 주요 특징**
+✅ `--flag=value` 형식으로 커맨드라인에서 인자 전달 가능  
+✅ **전역 변수**로 관리되므로 어디서든 접근 가능  
+✅ 기본값 설정 가능 (`DEFINE_int32`, `DEFINE_bool`, `DEFINE_double`, `DEFINE_string` 등)  
+✅ **glog와 함께 사용하면 강력한 디버깅 및 로깅 환경 구축 가능**  
+
+---
+
+## **1. gflags 설치 방법**
+Ubuntu에서 gflags를 설치하려면:
+```sh
+sudo apt-get install libgflags-dev
+```
+
+### **CMake 설정**
+`CMakeLists.txt`에서 `gflags`를 추가:
+```cmake
+find_package(gflags REQUIRED)
+
+add_executable(my_program src/my_program.cpp)
+target_link_libraries(my_program gflags)
+```
+
+`package.xml`에도 `gflags` 추가:
+```xml
+<depend>gflags</depend>
+```
+
+---
+
+## **2. gflags 기본 사용법**
+### **코드 예제**
+```cpp
+#include <iostream>
+#include <gflags/gflags.h>
+
+// Define command-line flags
+DEFINE_bool(debug, false, "Enable debug mode");
+DEFINE_int32(port, 8080, "Port number for the server");
+DEFINE_string(config, "default.yaml", "Path to config file");
+
+int main(int argc, char** argv) {
+    // Parse command-line flags
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+    // Use flags in the program
+    std::cout << "Debug mode: " << (FLAGS_debug ? "ON" : "OFF") << std::endl;
+    std::cout << "Server running on port: " << FLAGS_port << std::endl;
+    std::cout << "Using config file: " << FLAGS_config << std::endl;
+
+    return 0;
+}
+```
+
+---
+
+### **3. 실행 예제**
+컴파일 후 실행할 때 커맨드라인에서 값을 지정할 수 있음:
+```sh
+./my_program --debug=true --port=5000 --config="robot.yaml"
+```
+출력 결과:
+```sh
+Debug mode: ON
+Server running on port: 5000
+Using config file: robot.yaml
+```
+만약 `--debug`, `--port`, `--config` 플래그를 지정하지 않으면 **기본값**이 사용됨.
+
+---
+
+## **4. ROS2에서 gflags와 glog 함께 사용하기**
+**ROS2 노드에서 `gflags`를 이용해 플래그를 설정하고, `glog`를 이용해 로깅**하는 예제:
+
+```cpp
+#include <rclcpp/rclcpp.hpp>
+#include <gflags/gflags.h>
+#include <glog/logging.h>
+
+// Define command-line flags
+DEFINE_bool(enable_logging, true, "Enable glog logging");
+DEFINE_string(log_dir, "/home/user/ros2_logs", "Directory to save logs");
+DEFINE_int32(logging_level, 0, "Logging verbosity level");
+
+class MyROS2Node : public rclcpp::Node {
+public:
+    MyROS2Node() : Node("gflags_glog_example") {
+        if (FLAGS_enable_logging) {
+            google::InitGoogleLogging(this->get_name());
+            FLAGS_log_dir = FLAGS_log_dir;
+            FLAGS_v = FLAGS_logging_level;
+        }
+
+        LOG(INFO) << "ROS2 Node Started!";
+    }
+
+    ~MyROS2Node() {
+        if (FLAGS_enable_logging) {
+            google::ShutdownGoogleLogging();
+        }
+    }
+};
+
+int main(int argc, char** argv) {
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    rclcpp::init(argc, argv);
+
+    auto node = std::make_shared<MyROS2Node>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+
+    return 0;
+}
+```
+
+---
+
+### **5. 실행 예제**
+```sh
+./gflags_glog_example --enable_logging=true --log_dir="/tmp/logs" --logging_level=1
+```
+
+📌 `FLAGS_enable_logging`이 `true`일 경우, `glog`를 활성화하여 **로그를 특정 폴더에 저장**하고, `FLAGS_logging_level`을 사용해 **로그 세부 정보 조절** 가능.
+
+---
+
+## **6. gflags + glog + 멀티스레드 예제**
+### **여러 개의 스레드에서 gflags 값에 접근하는 로깅 시스템**
+```cpp
+#include <rclcpp/rclcpp.hpp>
+#include <gflags/gflags.h>
+#include <glog/logging.h>
+#include <thread>
+#include <vector>
+
+// Define command-line flags
+DEFINE_int32(num_threads, 4, "Number of logging threads");
+
+void logFromThread(int thread_id) {
+    for (int i = 0; i < 5; i++) {
+        LOG(INFO) << "Thread " << thread_id << " logging iteration " << i;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+class MultiThreadedLoggerNode : public rclcpp::Node {
+public:
+    MultiThreadedLoggerNode() : Node("multi_threaded_logger") {
+        LOG(INFO) << "Starting multi-threaded logger with " << FLAGS_num_threads << " threads.";
+
+        for (int i = 0; i < FLAGS_num_threads; i++) {
+            threads_.emplace_back(logFromThread, i);
+        }
+    }
+
+    ~MultiThreadedLoggerNode() {
+        for (auto &t : threads_) {
+            if (t.joinable()) t.join();
+        }
+        LOG(INFO) << "Multi-threaded logger shutting down!";
+    }
+
+private:
+    std::vector<std::thread> threads_;
+};
+
+int main(int argc, char** argv) {
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
+    FLAGS_logtostderr = 1;
+
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<MultiThreadedLoggerNode>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+
+    google::ShutdownGoogleLogging();
+    return 0;
+}
+```
+
+### **실행 예제**
+```sh
+./multi_threaded_logger --num_threads=6
+```
+**출력 예시:**
+```sh
+I0316 10:00:00.123456 12345 multi_threaded_logger.cpp:10] Starting multi-threaded logger with 6 threads.
+I0316 10:00:00.123457 12345 multi_threaded_logger.cpp:8] Thread 0 logging iteration 0
+I0316 10:00:00.123458 12345 multi_threaded_logger.cpp:8] Thread 1 logging iteration 0
+...
+I0316 10:00:05.123459 12345 multi_threaded_logger.cpp:22] Multi-threaded logger shutting down!
+```
+
+---
+
+## **📌 gflags + glog 정리**
+| **기능** | **gflags** | **glog** |
+|----------|-----------|----------|
+| 목적 | 커맨드라인 인자 관리 | 로그 기록 |
+| 변수 타입 | `bool`, `int`, `double`, `string` | 문자열 기반 로그 메시지 |
+| 설정 방법 | `DEFINE_*` 매크로 사용 | `LOG(INFO)`, `LOG(ERROR)` 사용 |
+| 실행 시 변경 가능 여부 | ✅ 가능 (`--flag=value`) | ❌ (설정 파일 또는 코드에서 변경 필요) |
+| 사용 예시 | `--num_threads=4` | `LOG(INFO) << "Hello, ROS2!"` |
+
+---
+
+## **마무리**
+✅ `gflags`는 **ROS2 프로그램에서 커맨드라인 인자를 쉽게 관리할 수 있도록 도와주는 라이브러리**  
+✅ `glog`와 함께 사용하면 **로깅을 제어할 수 있어 강력한 디버깅 환경 구축 가능**  
+✅ `gflags::ParseCommandLineFlags(&argc, &argv, true);` 호출하여 명령줄 플래그를 초기화  
+✅ `FLAGS_변수이름`을 통해 코드 내에서 직접 사용 가능  
+
+이제 `gflags`와 `glog`를 활용하여 **강력한 ROS2 로깅 시스템**을 구축할 수 있음! 🚀  
