@@ -52,7 +52,7 @@ git checkout [each branch]
 
 [[git bundle]]  
 git init .  
-git add .
+git add .  
 git commit -m "Initial commit"  
 
 git bundle create file.bundle master
