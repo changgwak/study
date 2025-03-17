@@ -6731,30 +6731,1304 @@ void sensor_callback(auto msg) {
 <br>
 <br>
 <br>
+
+# **🔹 6-1. ROS2 서비스와 액션 (`rclcpp::Service`, `rclcpp::Client`)**
+> **목표:**  
+> - **ROS2에서 C++과 Python으로 서비스를 구현하는 차이를 이해한다.**  
+> - **C++에서 `rclcpp::Service`와 `rclcpp::Client`를 활용하여 서비스를 제공하고 호출하는 방법을 익힌다.**  
+> - **C++과 Python의 서비스 코드 구조를 비교하여 차이점을 분석한다.**  
+> - **헤더 파일(`hpp`)과 소스 파일(`cpp`)을 분리하여 구조적으로 깔끔한 ROS2 노드를 만든다.**
+
+---
+
+# **✅ 1) ROS2 서비스 개념 (`Service`)**
+**서비스(Service)** 는 **서버-클라이언트(Server-Client) 모델**을 사용하여 특정 요청을 보내고 응답을 받는 방식으로 동작한다.  
+- **퍼블리셔-서브스크라이버 모델과 달리 요청이 있을 때만 실행됨.**
+- **서비스 서버(`Service`)는 요청을 처리하고 응답을 반환함.**
+- **서비스 클라이언트(`Client`)는 요청을 보내고 응답을 기다림.**
+
+---
+
+# **✅ 2) Python과 C++의 서비스 구현 차이**
+| 기능 | Python (`rclpy`) | C++ (`rclcpp`) |
+|---|---|---|
+| **서비스 정의** | `rclpy.Service` | `rclcpp::Service` |
+| **클라이언트 정의** | `rclpy.Client` | `rclcpp::Client` |
+| **콜백 함수** | `def callback(request, response):` | `void callback(const std::shared_ptr<Request>, std::shared_ptr<Response>)` |
+| **비동기 요청** | `future = client.call_async(request)` | `client->async_send_request(request)` |
+
+📌 **Python은 문법이 간결하고 동적 언어이므로 빠르게 구현 가능**  
+📌 **C++은 더 정교한 타입 시스템을 제공하며, 성능과 안정성이 뛰어남**  
+
+---
+
+# **✅ 3) ROS2 C++ 서비스 서버 & 클라이언트 구현**
+📌 **서비스 요청을 받으면 두 개의 정수를 더한 결과를 반환하는 `AddTwoInts` 서비스를 구현한다.**  
+📌 **C++에서는 헤더 파일(`hpp`)과 소스 파일(`cpp`)을 분리하여 작성한다.**
+
+---
+
+## **📌 1. 서비스 서버 (`add_two_ints_server`)**
+### **🔹 `add_two_ints_server.hpp` (헤더 파일)**
+```cpp
+#ifndef ADD_TWO_INTS_SERVER_HPP_
+#define ADD_TWO_INTS_SERVER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "example_interfaces/srv/add_two_ints.hpp"
+
+class AddTwoIntsServer : public rclcpp::Node {
+public:
+    AddTwoIntsServer();
+
+private:
+    void handle_addition(
+        const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request,
+        std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response);
+
+    rclcpp::Service<example_interfaces::srv::AddTwoInts>::SharedPtr service_;
+};
+
+#endif  // ADD_TWO_INTS_SERVER_HPP_
+```
+📌 **서비스 요청을 처리하는 `handle_addition` 콜백 함수 선언.**  
+📌 **서비스는 `example_interfaces/srv/AddTwoInts.srv` 타입을 사용함.**  
+
+---
+
+### **🔹 `add_two_ints_server.cpp` (소스 파일)**
+```cpp
+#include "add_two_ints_server.hpp"
+
+AddTwoIntsServer::AddTwoIntsServer() : Node("add_two_ints_server") {
+    service_ = this->create_service<example_interfaces::srv::AddTwoInts>(
+        "add_two_ints",
+        std::bind(&AddTwoIntsServer::handle_addition, this, std::placeholders::_1, std::placeholders::_2)
+    );
+    RCLCPP_INFO(this->get_logger(), "Service 'add_two_ints' is ready.");
+}
+
+void AddTwoIntsServer::handle_addition(
+    const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request,
+    std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response) 
+{
+    response->sum = request->a + request->b;
+    RCLCPP_INFO(this->get_logger(), "Received request: %ld + %ld = %ld",
+                request->a, request->b, response->sum);
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<AddTwoIntsServer>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+📌 **서비스 요청이 오면 `handle_addition()`이 실행되어 두 정수를 더한 결과를 반환한다.**  
+📌 **노드가 실행되면 `"Service 'add_two_ints' is ready."` 메시지가 출력됨.**  
+
+---
+
+## **📌 2. 서비스 클라이언트 (`add_two_ints_client`)**
+### **🔹 `add_two_ints_client.hpp` (헤더 파일)**
+```cpp
+#ifndef ADD_TWO_INTS_CLIENT_HPP_
+#define ADD_TWO_INTS_CLIENT_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "example_interfaces/srv/add_two_ints.hpp"
+
+class AddTwoIntsClient : public rclcpp::Node {
+public:
+    AddTwoIntsClient();
+    void send_request(int64_t a, int64_t b);
+
+private:
+    rclcpp::Client<example_interfaces::srv::AddTwoInts>::SharedPtr client_;
+};
+
+#endif  // ADD_TWO_INTS_CLIENT_HPP_
+```
+📌 **클라이언트는 `send_request(a, b)`를 통해 서버에 요청을 보냄.**  
+
+---
+
+### **🔹 `add_two_ints_client.cpp` (소스 파일)**
+```cpp
+#include "add_two_ints_client.hpp"
+
+AddTwoIntsClient::AddTwoIntsClient() : Node("add_two_ints_client") {
+    client_ = this->create_client<example_interfaces::srv::AddTwoInts>("add_two_ints");
+}
+
+void AddTwoIntsClient::send_request(int64_t a, int64_t b) {
+    auto request = std::make_shared<example_interfaces::srv::AddTwoInts::Request>();
+    request->a = a;
+    request->b = b;
+
+    while (!client_->wait_for_service(std::chrono::seconds(1))) {
+        RCLCPP_WARN(this->get_logger(), "Waiting for service to be available...");
+    }
+
+    auto future_result = client_->async_send_request(request);
+
+    if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), future_result)
+        == rclcpp::FutureReturnCode::SUCCESS) {
+        RCLCPP_INFO(this->get_logger(), "Result: %ld", future_result.get()->sum);
+    } else {
+        RCLCPP_ERROR(this->get_logger(), "Failed to call service");
+    }
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<AddTwoIntsClient>();
+
+    node->send_request(5, 3);  // ✅ (5 + 3) 요청 보내기
+
+    rclcpp::shutdown();
+    return 0;
+}
+```
+📌 **서비스가 준비될 때까지 대기(`wait_for_service()`)한 후 요청을 보냄.**  
+📌 **비동기 방식(`async_send_request()`)으로 요청을 보낸 후 응답을 받으면 출력.**  
+
+---
+
+# **✅ 4) 패키지 빌드 및 실행**
+### **📌 패키지 빌드**
+```bash
+colcon build --packages-select my_cpp_package
+source install/setup.bash
+```
+
+### **📌 서비스 서버 실행**
+```bash
+ros2 run my_cpp_package add_two_ints_server
+```
+✅ 실행하면 `"Service 'add_two_ints' is ready."` 출력됨.
+
+### **📌 서비스 클라이언트 실행**
+```bash
+ros2 run my_cpp_package add_two_ints_client
+```
+✅ 실행하면 `"Result: 8"` 출력됨. (`5 + 3 = 8`)
+
+---
+
+# **📌 정리**
+✅ **C++의 `rclcpp::Service`와 `rclcpp::Client`를 사용하여 ROS2 서비스를 구현했다.**  
+✅ **Python보다 명시적인 타입을 사용해야 하지만, 성능과 안정성이 더 좋다.**  
+✅ **서비스 서버는 요청이 올 때만 실행되므로 불필요한 리소스 낭비를 줄일 수 있다.**  
+✅ **비동기 방식(`async_send_request()`)을 사용하여 응답을 기다릴 수 있다.**  
+
+
+<br>
+<br>
+<br>
+
+# **🔹 6-2. ROS2 액션 (`rclcpp::ActionServer`, `rclcpp::ActionClient`)**
+> **목표:**  
+> - **ROS2에서 액션(Action)의 개념을 이해한다.**  
+> - **C++에서 `rclcpp::ActionServer`와 `rclcpp::ActionClient`를 활용하여 액션을 제공하고 호출하는 방법을 익힌다.**  
+> - **Python과 C++의 액션 구현 차이를 비교하여 차이점을 분석한다.**  
+> - **헤더 파일(`hpp`)과 소스 파일(`cpp`)을 분리하여 구조적으로 깔끔한 ROS2 액션 노드를 만든다.**
+
+---
+
+# **✅ 1) ROS2 액션 개념 (`Action`)**
+**액션(Action)** 은 **퍼블리셔-서브스크라이버 모델과 서비스 모델의 중간 형태**로,  
+- **비동기 요청 가능 (서비스처럼 요청-응답 구조지만, 실행이 길어질 수 있음)**  
+- **실행 상태를 지속적으로 피드백 가능**  
+- **중간에 실행을 취소할 수 있음**  
+
+📌 **ROS2 액션은 주로 로봇의 경로 탐색, 팔 움직이기, 장기 실행 작업에서 사용됨.**
+
+---
+
+# **✅ 2) Python과 C++의 액션 구현 차이**
+| 기능 | Python (`rclpy`) | C++ (`rclcpp`) |
+|---|---|---|
+| **액션 서버 정의** | `rclpy.action.ActionServer` | `rclcpp_action::ActionServer` |
+| **액션 클라이언트 정의** | `rclpy.action.ActionClient` | `rclcpp_action::Client` |
+| **콜백 함수** | `def execute_callback(goal_handle):` | `void execute_callback(const std::shared_ptr<GoalHandle>)` |
+| **피드백 제공** | `goal_handle.publish_feedback(feedback)` | `goal_handle->publish_feedback(feedback)` |
+
+📌 **Python은 문법이 간결하고, C++은 더 정교한 타입 시스템을 제공한다.**  
+
+---
+
+# **✅ 3) ROS2 C++ 액션 서버 & 클라이언트 구현**
+📌 **"로봇이 목표 위치까지 이동하는 액션"을 구현한다.**  
+📌 **C++에서는 헤더 파일(`hpp`)과 소스 파일(`cpp`)을 분리하여 작성한다.**  
+📌 **사용할 액션 메시지 타입: `nav2_msgs/action/NavigateToPose`**
+
+---
+
+## **📌 1. 액션 서버 (`navigate_to_pose_server`)**
+### **🔹 `navigate_to_pose_server.hpp` (헤더 파일)**
+```cpp
+#ifndef NAVIGATE_TO_POSE_SERVER_HPP_
+#define NAVIGATE_TO_POSE_SERVER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_action/rclcpp_action.hpp"
+#include "nav2_msgs/action/navigate_to_pose.hpp"
+
+class NavigateToPoseServer : public rclcpp::Node {
+public:
+    using NavigateToPose = nav2_msgs::action::NavigateToPose;
+    using GoalHandleNavigate = rclcpp_action::ServerGoalHandle<NavigateToPose>;
+
+    NavigateToPoseServer();
+
+private:
+    rclcpp_action::Server<NavigateToPose>::SharedPtr action_server_;
+
+    rclcpp_action::GoalResponse handle_goal(
+        const rclcpp_action::GoalUUID & uuid,
+        std::shared_ptr<const NavigateToPose::Goal> goal);
+
+    rclcpp_action::CancelResponse handle_cancel(
+        const std::shared_ptr<GoalHandleNavigate> goal_handle);
+
+    void handle_accepted(const std::shared_ptr<GoalHandleNavigate> goal_handle);
+    void execute(const std::shared_ptr<GoalHandleNavigate> goal_handle);
+};
+
+#endif  // NAVIGATE_TO_POSE_SERVER_HPP_
+```
+📌 **액션 서버는 `navigate_to_pose` 목표를 처리하고, 실행 결과를 반환한다.**  
+📌 **핸들러(`handle_goal`, `handle_cancel`, `execute`)를 사용하여 액션을 관리한다.**  
+
+---
+
+### **🔹 `navigate_to_pose_server.cpp` (소스 파일)**
+```cpp
+#include "navigate_to_pose_server.hpp"
+
+NavigateToPoseServer::NavigateToPoseServer() : Node("navigate_to_pose_server") {
+    using namespace std::placeholders;
+    
+    action_server_ = rclcpp_action::create_server<NavigateToPose>(
+        this,
+        "navigate_to_pose",
+        std::bind(&NavigateToPoseServer::handle_goal, this, _1, _2),
+        std::bind(&NavigateToPoseServer::handle_cancel, this, _1),
+        std::bind(&NavigateToPoseServer::handle_accepted, this, _1)
+    );
+
+    RCLCPP_INFO(this->get_logger(), "NavigateToPose Action Server is ready.");
+}
+
+rclcpp_action::GoalResponse NavigateToPoseServer::handle_goal(
+    const rclcpp_action::GoalUUID & uuid,
+    std::shared_ptr<const NavigateToPose::Goal> goal) 
+{
+    RCLCPP_INFO(this->get_logger(), "Received goal request: x=%.2f, y=%.2f",
+                goal->pose.pose.position.x, goal->pose.pose.position.y);
+    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+rclcpp_action::CancelResponse NavigateToPoseServer::handle_cancel(
+    const std::shared_ptr<GoalHandleNavigate> goal_handle) 
+{
+    RCLCPP_INFO(this->get_logger(), "Goal canceled.");
+    return rclcpp_action::CancelResponse::ACCEPT;
+}
+
+void NavigateToPoseServer::handle_accepted(
+    const std::shared_ptr<GoalHandleNavigate> goal_handle) 
+{
+    std::thread{std::bind(&NavigateToPoseServer::execute, this, goal_handle)}.detach();
+}
+
+void NavigateToPoseServer::execute(
+    const std::shared_ptr<GoalHandleNavigate> goal_handle) 
+{
+    RCLCPP_INFO(this->get_logger(), "Executing goal...");
+    
+    auto feedback = std::make_shared<NavigateToPose::Feedback>();
+    for (int i = 0; i <= 100; i += 10) {
+        if (goal_handle->is_canceling()) {
+            goal_handle->canceled();
+            RCLCPP_INFO(this->get_logger(), "Goal canceled.");
+            return;
+        }
+        feedback->distance_remaining = (100 - i) / 10.0;
+        goal_handle->publish_feedback(feedback);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    auto result = std::make_shared<NavigateToPose::Result>();
+    goal_handle->succeed(result);
+    RCLCPP_INFO(this->get_logger(), "Goal succeeded.");
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<NavigateToPoseServer>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+📌 **액션 서버는 목표 위치까지 이동하면서 피드백을 제공하고, 완료되면 성공 상태를 반환한다.**  
+
+---
+
+## **📌 2. 액션 클라이언트 (`navigate_to_pose_client`)**
+### **🔹 `navigate_to_pose_client.hpp` (헤더 파일)**
+```cpp
+#ifndef NAVIGATE_TO_POSE_CLIENT_HPP_
+#define NAVIGATE_TO_POSE_CLIENT_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_action/rclcpp_action.hpp"
+#include "nav2_msgs/action/navigate_to_pose.hpp"
+
+class NavigateToPoseClient : public rclcpp::Node {
+public:
+    using NavigateToPose = nav2_msgs::action::NavigateToPose;
+    using GoalHandleNavigate = rclcpp_action::ClientGoalHandle<NavigateToPose>;
+
+    NavigateToPoseClient();
+    void send_goal(double x, double y);
+
+private:
+    rclcpp_action::Client<NavigateToPose>::SharedPtr action_client_;
+};
+
+#endif  // NAVIGATE_TO_POSE_CLIENT_HPP_
+```
+
+---
+
+### **🔹 `navigate_to_pose_client.cpp` (소스 파일)**
+```cpp
+#include "navigate_to_pose_client.hpp"
+
+NavigateToPoseClient::NavigateToPoseClient() : Node("navigate_to_pose_client") {
+    action_client_ = rclcpp_action::create_client<NavigateToPose>(this, "navigate_to_pose");
+}
+
+void NavigateToPoseClient::send_goal(double x, double y) {
+    auto goal_msg = NavigateToPose::Goal();
+    goal_msg.pose.pose.position.x = x;
+    goal_msg.pose.pose.position.y = y;
+
+    auto future_result = action_client_->async_send_goal(goal_msg);
+    RCLCPP_INFO(this->get_logger(), "Sent goal to navigate to (%.2f, %.2f)", x, y);
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto client = std::make_shared<NavigateToPoseClient>();
+    client->send_goal(5.0, 3.0);
+    rclcpp::spin(client);
+    rclcpp::shutdown();
+    return 0;
+}
+```
+📌 **클라이언트는 목표 위치 `(5.0, 3.0)`로 이동 요청을 보냄.**  
+
+---
+
+📌 **이제 ROS2 액션 서버 & 클라이언트를 실행하여 로봇을 제어할 수 있다!** 🚀
+
+
 <br>
 <br>
 <br>
 <br>
 <br>
 <br>
+
+# **🔹 6-2. ROS2 메시지 타입 정의 및 활용 (`std_msgs`, `geometry_msgs`, 커스텀 메시지)**
+> **목표:**  
+> - **ROS2에서 `std_msgs` 및 `geometry_msgs`를 활용하는 방법을 익힌다.**  
+> - **`rosidl_generator_cpp`를 사용하여 커스텀 메시지를 생성하고 활용하는 방법을 배운다.**  
+> - **C++(`rclcpp`)에서 메시지를 송수신하는 예제를 통해 실습한다.**  
+> - **헤더 파일(`hpp`)과 소스 파일(`cpp`)을 분리하여 구조적으로 깔끔한 ROS2 노드를 만든다.**
+
+---
+
+# **✅ 1) ROS2 기본 메시지 타입 (`std_msgs`, `geometry_msgs`)**
+ROS2는 **기본적인 메시지 타입**을 제공하는 패키지를 갖추고 있음.
+
+| 패키지 | 설명 |
+|--------|----------------|
+| `std_msgs` | 기본적인 데이터 타입 (`std_msgs/msg/String`, `std_msgs/msg/Int32`, `std_msgs/msg/Float32`) |
+| `geometry_msgs` | 위치 및 벡터 데이터 (`geometry_msgs/msg/Pose`, `geometry_msgs/msg/Twist`, `geometry_msgs/msg/Quaternion`) |
+
+📌 **기본 메시지를 사용하면 직접 메시지를 정의할 필요 없이 빠르게 데이터 전송 가능.**  
+📌 **그러나, 필요에 따라 커스텀 메시지를 정의할 수도 있음.**  
+
+---
+
+# **✅ 2) `std_msgs`, `geometry_msgs` 활용 예제**
+## **📌 1. `geometry_msgs::msg::Pose`를 사용한 퍼블리셔 & 서브스크라이버**
+📌 **이 노드는 `geometry_msgs::msg::Pose` 타입의 메시지를 발행하고 구독하는 예제이다.**  
+📌 **헤더 파일(`hpp`)과 소스 파일(`cpp`)을 분리하여 작성한다.**  
+
+---
+
+### **🔹 `pose_publisher.hpp` (헤더 파일 - 퍼블리셔)**
+```cpp
+#ifndef POSE_PUBLISHER_HPP_
+#define POSE_PUBLISHER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+
+class PosePublisher : public rclcpp::Node {
+public:
+    PosePublisher();
+
+private:
+    void publish_pose();
+    rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+#endif  // POSE_PUBLISHER_HPP_
+```
+
+---
+
+### **🔹 `pose_publisher.cpp` (소스 파일 - 퍼블리셔)**
+```cpp
+#include "pose_publisher.hpp"
+
+PosePublisher::PosePublisher() : Node("pose_publisher") {
+    publisher_ = this->create_publisher<geometry_msgs::msg::Pose>("pose_topic", 10);
+    timer_ = this->create_wall_timer(
+        std::chrono::seconds(1),
+        std::bind(&PosePublisher::publish_pose, this)
+    );
+}
+
+void PosePublisher::publish_pose() {
+    auto msg = geometry_msgs::msg::Pose();
+    msg.position.x = 1.0;
+    msg.position.y = 2.0;
+    msg.position.z = 0.0;
+    msg.orientation.w = 1.0;
+
+    RCLCPP_INFO(this->get_logger(), "Publishing Pose: x=%.2f, y=%.2f", msg.position.x, msg.position.y);
+    publisher_->publish(msg);
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<PosePublisher>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+
+---
+
+### **🔹 `pose_subscriber.hpp` (헤더 파일 - 서브스크라이버)**
+```cpp
+#ifndef POSE_SUBSCRIBER_HPP_
+#define POSE_SUBSCRIBER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+
+class PoseSubscriber : public rclcpp::Node {
+public:
+    PoseSubscriber();
+
+private:
+    void pose_callback(const geometry_msgs::msg::Pose::SharedPtr msg);
+    rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr subscription_;
+};
+
+#endif  // POSE_SUBSCRIBER_HPP_
+```
+
+---
+
+### **🔹 `pose_subscriber.cpp` (소스 파일 - 서브스크라이버)**
+```cpp
+#include "pose_subscriber.hpp"
+
+PoseSubscriber::PoseSubscriber() : Node("pose_subscriber") {
+    subscription_ = this->create_subscription<geometry_msgs::msg::Pose>(
+        "pose_topic", 10,
+        std::bind(&PoseSubscriber::pose_callback, this, std::placeholders::_1)
+    );
+}
+
+void PoseSubscriber::pose_callback(const geometry_msgs::msg::Pose::SharedPtr msg) {
+    RCLCPP_INFO(this->get_logger(), "Received Pose: x=%.2f, y=%.2f", msg->position.x, msg->position.y);
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<PoseSubscriber>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+
+📌 **이제 `pose_publisher`가 `geometry_msgs::msg::Pose` 메시지를 발행하고, `pose_subscriber`가 구독하여 데이터를 수신한다.**
+
+---
+
+# **✅ 3) 커스텀 메시지 생성 (`rosidl_generator_cpp`)**
+**기본 메시지(`std_msgs`, `geometry_msgs`)만으로 부족한 경우, 직접 커스텀 메시지를 만들 수 있음.**  
+📌 **ROS2에서 커스텀 메시지를 만들려면 `msg/` 디렉토리를 생성하고 `.msg` 파일을 추가해야 함.**  
+
+---
+
+## **📌 1. 커스텀 메시지 정의**
+📌 **예제: `CustomPose.msg` 파일을 생성하여 `x, y, z, heading`을 포함하는 메시지를 정의한다.**  
+📌 **메시지 파일을 패키지의 `msg/` 폴더에 추가한다.**  
+
+📌 **📁 `my_cpp_package/msg/CustomPose.msg`**
+```
+float64 x
+float64 y
+float64 z
+float64 heading
+```
+
+📌 **📁 `CMakeLists.txt`에 메시지 추가**
+```cmake
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(my_cpp_package
+  "msg/CustomPose.msg"
+  DEPENDENCIES builtin_interfaces
+)
+```
+
+📌 **📁 `package.xml`에 메시지 추가**
+```xml
+<depend>rosidl_default_generators</depend>
+<depend>builtin_interfaces</depend>
+```
+
+📌 **📁 빌드 후 메시지 자동 생성**
+```bash
+colcon build --packages-select my_cpp_package
+source install/setup.bash
+```
+
+---
+
+## **📌 2. 커스텀 메시지를 사용한 퍼블리셔 & 서브스크라이버**
+📌 **커스텀 메시지를 사용하여 퍼블리시 & 서브스크라이브하는 예제.**  
+📌 **이전 `pose_publisher`와 동일한 방식이지만, `CustomPose` 메시지를 사용.**
+
+### **🔹 `custom_pose_publisher.hpp`**
+```cpp
+#ifndef CUSTOM_POSE_PUBLISHER_HPP_
+#define CUSTOM_POSE_PUBLISHER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "my_cpp_package/msg/custom_pose.hpp"
+
+class CustomPosePublisher : public rclcpp::Node {
+public:
+    CustomPosePublisher();
+
+private:
+    void publish_pose();
+    rclcpp::Publisher<my_cpp_package::msg::CustomPose>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+#endif  // CUSTOM_POSE_PUBLISHER_HPP_
+```
+
+### **🔹 `custom_pose_publisher.cpp`**
+```cpp
+#include "custom_pose_publisher.hpp"
+
+CustomPosePublisher::CustomPosePublisher() : Node("custom_pose_publisher") {
+    publisher_ = this->create_publisher<my_cpp_package::msg::CustomPose>("custom_pose_topic", 10);
+    timer_ = this->create_wall_timer(std::chrono::seconds(1),
+                                     std::bind(&CustomPosePublisher::publish_pose, this));
+}
+
+void CustomPosePublisher::publish_pose() {
+    auto msg = my_cpp_package::msg::CustomPose();
+    msg.x = 1.0;
+    msg.y = 2.0;
+    msg.z = 0.0;
+    msg.heading = 90.0;
+
+    RCLCPP_INFO(this->get_logger(), "Publishing CustomPose: x=%.2f, y=%.2f, heading=%.2f",
+                msg.x, msg.y, msg.heading);
+    publisher_->publish(msg);
+}
+```
+
+📌 **이제 커스텀 메시지를 활용하여 더 다양한 데이터를 주고받을 수 있다!** 🚀
+
+
 <br>
 <br>
 <br>
 <br>
 <br>
 <br>
+
+# **🔹 6-3. ROS2 TF2를 활용한 좌표 변환 (`tf2_ros::TransformBroadcaster` & `tf2_ros::TransformListener`)**
+> **목표:**  
+> - **ROS2에서 `tf2_ros`를 활용하여 좌표 변환을 수행하는 방법을 익힌다.**  
+> - **`tf2_ros::TransformBroadcaster`로 프레임을 브로드캐스트하는 방법을 배운다.**  
+> - **`tf2_ros::TransformListener`를 활용하여 좌표 변환을 수행하는 방법을 익힌다.**  
+> - **헤더 파일(`hpp`)과 소스 파일(`cpp`)을 분리하여 구조적으로 깔끔한 ROS2 노드를 만든다.**  
+
+---
+
+# **✅ 1) ROS2 TF2란?**
+📌 **TF2는 ROS2에서 좌표 변환을 관리하는 라이브러리**  
+📌 **로봇의 센서, 카메라, 바퀴 등의 위치 관계를 정의하고 변환을 수행할 때 사용됨**  
+
+## **🔹 TF2의 핵심 개념**
+| 개념 | 설명 |
+|------|------|
+| **TF 브로드캐스터 (`tf2_ros::TransformBroadcaster`)** | 특정 프레임 간의 좌표 변환을 ROS2 네트워크에 브로드캐스트함 |
+| **TF 리스너 (`tf2_ros::TransformListener`)** | ROS2 네트워크에서 특정 프레임의 변환 정보를 구독하고 활용함 |
+| **TF 버퍼 (`tf2_ros::Buffer`)** | TF 데이터를 저장하고 요청 시 변환을 제공함 |
+
+📌 **예제: `odom → base_link` 변환을 브로드캐스트하고, `base_link`의 좌표를 변환하는 예제**  
+
+---
+
+# **✅ 2) ROS2 TF2를 활용한 좌표 변환 예제**
+📌 **이제 `tf2_ros::TransformBroadcaster`와 `tf2_ros::TransformListener`를 사용하여 좌표 변환을 수행하는 노드를 만든다.**  
+📌 **두 개의 노드를 작성:**  
+- `tf2_broadcaster` (좌표 변환 브로드캐스트)  
+- `tf2_listener` (좌표 변환 리스닝 및 변환 수행)  
+
+---
+
+## **📌 1. TF2 브로드캐스터 (`tf2_broadcaster`)**
+📌 **이 노드는 `odom` 프레임 기준으로 `base_link` 프레임을 지속적으로 브로드캐스트함.**  
+
+### **🔹 `tf2_broadcaster.hpp` (헤더 파일)**
+```cpp
+#ifndef TF2_BROADCASTER_HPP_
+#define TF2_BROADCASTER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/transform_broadcaster.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+
+class TF2Broadcaster : public rclcpp::Node {
+public:
+    TF2Broadcaster();
+
+private:
+    void broadcast_transform();
+    rclcpp::TimerBase::SharedPtr timer_;
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+};
+
+#endif  // TF2_BROADCASTER_HPP_
+```
+
+---
+
+### **🔹 `tf2_broadcaster.cpp` (소스 파일)**
+```cpp
+#include "tf2_broadcaster.hpp"
+
+TF2Broadcaster::TF2Broadcaster() : Node("tf2_broadcaster") {
+    tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
+    timer_ = this->create_wall_timer(
+        std::chrono::milliseconds(500),
+        std::bind(&TF2Broadcaster::broadcast_transform, this)
+    );
+}
+
+void TF2Broadcaster::broadcast_transform() {
+    geometry_msgs::msg::TransformStamped transformStamped;
+
+    transformStamped.header.stamp = this->get_clock()->now();
+    transformStamped.header.frame_id = "odom";
+    transformStamped.child_frame_id = "base_link";
+
+    transformStamped.transform.translation.x = 1.0;
+    transformStamped.transform.translation.y = 2.0;
+    transformStamped.transform.translation.z = 0.0;
+
+    transformStamped.transform.rotation.x = 0.0;
+    transformStamped.transform.rotation.y = 0.0;
+    transformStamped.transform.rotation.z = 0.0;
+    transformStamped.transform.rotation.w = 1.0;
+
+    tf_broadcaster_->sendTransform(transformStamped);
+
+    RCLCPP_INFO(this->get_logger(), "Broadcasting transform: odom -> base_link");
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<TF2Broadcaster>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+📌 **이제 `odom` → `base_link` 변환을 0.5초마다 브로드캐스트한다.**  
+
+---
+
+## **📌 2. TF2 리스너 (`tf2_listener`)**
+📌 **이 노드는 `base_link` 프레임의 좌표를 `odom` 프레임 기준으로 변환함.**  
+
+### **🔹 `tf2_listener.hpp` (헤더 파일)**
+```cpp
+#ifndef TF2_LISTENER_HPP_
+#define TF2_LISTENER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+
+class TF2Listener : public rclcpp::Node {
+public:
+    TF2Listener();
+
+private:
+    void lookup_transform();
+    rclcpp::TimerBase::SharedPtr timer_;
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+};
+
+#endif  // TF2_LISTENER_HPP_
+```
+
+---
+
+### **🔹 `tf2_listener.cpp` (소스 파일)**
+```cpp
+#include "tf2_listener.hpp"
+
+TF2Listener::TF2Listener() : Node("tf2_listener") {
+    tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
+    timer_ = this->create_wall_timer(
+        std::chrono::milliseconds(500),
+        std::bind(&TF2Listener::lookup_transform, this)
+    );
+}
+
+void TF2Listener::lookup_transform() {
+    try {
+        auto transformStamped = tf_buffer_->lookupTransform("odom", "base_link", tf2::TimePointZero);
+
+        RCLCPP_INFO(this->get_logger(),
+            "Received transform: base_link (%.2f, %.2f) in odom frame",
+            transformStamped.transform.translation.x,
+            transformStamped.transform.translation.y);
+    } catch (tf2::TransformException &ex) {
+        RCLCPP_WARN(this->get_logger(), "Could not transform base_link to odom: %s", ex.what());
+    }
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<TF2Listener>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+📌 **이제 `tf2_listener`는 `base_link` 프레임의 좌표를 `odom` 프레임 기준으로 변환하여 출력한다.**  
+
+---
+
+# **✅ 3) 패키지 빌드 및 실행**
+### **📌 패키지 빌드**
+```bash
+colcon build --packages-select my_cpp_package
+source install/setup.bash
+```
+
+### **📌 TF2 브로드캐스터 실행**
+```bash
+ros2 run my_cpp_package tf2_broadcaster
+```
+✅ 실행하면 `"Broadcasting transform: odom -> base_link"` 메시지가 반복 출력됨.
+
+### **📌 TF2 리스너 실행**
+```bash
+ros2 run my_cpp_package tf2_listener
+```
+✅ 실행하면 `"Received transform: base_link (1.0, 2.0) in odom frame"` 출력됨.
+
+---
+
+# **📌 정리**
+✅ **TF2를 사용하여 좌표 변환을 수행하는 방법을 익혔다.**  
+✅ **`tf2_ros::TransformBroadcaster`를 사용하여 프레임 간 변환을 브로드캐스트하였다.**  
+✅ **`tf2_ros::TransformListener`를 사용하여 변환된 좌표를 받아 출력하였다.**  
+✅ **실제 로봇에서 `TF2`를 활용하여 센서 데이터와 로봇의 좌표를 변환하는데 사용할 수 있다.**  
+
+📌 **이제 TF2를 활용하여 로봇의 위치 관계를 효과적으로 관리할 수 있다!** 🚀
+
+
+
+<br>
+<br>
+<br>
+
+## **📌 TF2의 좌표 변환 이해하기**
+ROS2의 **TF2(Transform Framework 2)**는 **다양한 좌표계(Frame)** 간의 변환을 관리하는 라이브러리입니다.  
+이를 활용하면 **센서, 로봇 바디, 지도 등 여러 요소의 상대적 위치를 자동으로 변환**할 수 있습니다.
+
+---
+
+## **✅ 1) TF2의 기본 개념**
+### **🔹 TF 프레임 (좌표계)**
+ROS2에서 **각각의 객체(로봇, 센서, 휠, 카메라 등)** 는 고유한 좌표계(`frame`)를 가질 수 있습니다.  
+예를 들어, **로봇이 `odom`(오도메트리 좌표계) 안에서 `base_link`(로봇 본체 좌표계)라는 프레임을 가지고 있다면**,  
+**로봇의 위치는 `odom → base_link` 변환을 통해 결정됩니다.**
+
+📌 **예제에서 정의한 좌표 관계**
+```
+odom → base_link (x = 1.0, y = 2.0, z = 0.0)
+```
+즉, **로봇(`base_link`)의 원점이 `odom` 좌표계에서 (1,2,0)에 위치하고 있다는 의미**입니다.
+
+---
+
+## **✅ 2) TF2 브로드캐스터가 하는 일**
+```cpp
+void TF2Broadcaster::broadcast_transform() {
+    geometry_msgs::msg::TransformStamped transformStamped;
+
+    transformStamped.header.stamp = this->get_clock()->now();
+    transformStamped.header.frame_id = "odom";  // 부모 프레임
+    transformStamped.child_frame_id = "base_link";  // 자식 프레임
+
+    transformStamped.transform.translation.x = 1.0;  // x 방향으로 1m 이동
+    transformStamped.transform.translation.y = 2.0;  // y 방향으로 2m 이동
+    transformStamped.transform.translation.z = 0.0;  // z 방향 이동 없음
+
+    transformStamped.transform.rotation.x = 0.0;
+    transformStamped.transform.rotation.y = 0.0;
+    transformStamped.transform.rotation.z = 0.0;
+    transformStamped.transform.rotation.w = 1.0;  // 회전 없음 (기본 방향)
+
+    tf_broadcaster_->sendTransform(transformStamped);
+
+    RCLCPP_INFO(this->get_logger(), "Broadcasting transform: odom -> base_link");
+}
+```
+### **🔹 설명**
+📌 **1) `frame_id = "odom"`, `child_frame_id = "base_link"`**
+- **`odom`(부모) → `base_link`(자식)의 변환을 생성**
+- **즉, `base_link`가 `odom` 기준으로 어디에 있는지를 나타냄**
+
+📌 **2) `translation.x = 1.0, translation.y = 2.0`**
+- `odom` 원점 기준으로 **`base_link`가 (1.0, 2.0) 위치에 있음**
+- **즉, 로봇(`base_link`)이 `odom`에서 1m 오른쪽, 2m 위쪽에 있음**
+
+📌 **3) `rotation.w = 1.0` (회전 없음)**
+- **회전(`quaternion`)이 없기 때문에, `base_link`의 방향이 `odom`과 동일**
+
+📌 **4) `tf_broadcaster_->sendTransform(transformStamped);`**
+- `odom → base_link` 변환을 ROS2 네트워크에 브로드캐스트하여 **다른 노드가 이 변환을 사용할 수 있도록 전송**  
+
+---
+
+## **✅ 3) TF2 리스너가 하는 일**
+```cpp
+void TF2Listener::lookup_transform() {
+    try {
+        auto transformStamped = tf_buffer_->lookupTransform("odom", "base_link", tf2::TimePointZero);
+
+        RCLCPP_INFO(this->get_logger(),
+            "Received transform: base_link (%.2f, %.2f) in odom frame",
+            transformStamped.transform.translation.x,
+            transformStamped.transform.translation.y);
+    } catch (tf2::TransformException &ex) {
+        RCLCPP_WARN(this->get_logger(), "Could not transform base_link to odom: %s", ex.what());
+    }
+}
+```
+### **🔹 설명**
+📌 **1) `lookupTransform("odom", "base_link")`**
+- `"odom"` 기준에서 `"base_link"`의 위치를 요청
+- 즉, **현재 로봇(`base_link`)의 좌표를 `odom` 기준으로 변환하여 가져옴**
+
+📌 **2) 결과 출력**
+- 변환이 성공하면 `"base_link (1.0, 2.0) in odom frame"` 출력
+- 즉, **로봇(`base_link`)이 `odom` 기준으로 (1.0, 2.0)에 위치함을 확인**
+
+📌 **3) 예외 처리**
+- 변환 정보가 아직 도착하지 않았다면 `"Could not transform base_link to odom"` 경고 출력
+
+---
+
+## **✅ 4) 시각적으로 이해하기**
+### **🔹 TF2 좌표 변환 개념**
+```
+ Odom 좌표계 (odom)
+   ┌──────────────┐
+   │              │
+   │   (1,2,0)    │ ← base_link (로봇 본체)
+   │              │
+   └──────────────┘
+```
+📌 `tf2_broadcaster`가 **이 관계를 지속적으로 브로드캐스트**하고  
+📌 `tf2_listener`가 **이 정보를 읽어 좌표 변환을 수행**  
+
+---
+
+# **✅ 5) 실제 예제에서 사용 예시**
+### **📌 예제: `base_link`의 좌표를 `map` 좌표계로 변환**
+📌 **센서의 위치가 `base_link` 기준으로 (0.5, 0, 0)인 경우, 이를 `map` 기준 좌표로 변환하는 코드**
+```cpp
+#include "tf2_ros/transform_listener.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+
+void transform_point() {
+    try {
+        geometry_msgs::msg::PointStamped sensor_point;
+        sensor_point.header.frame_id = "base_link";
+        sensor_point.point.x = 0.5;
+        sensor_point.point.y = 0.0;
+        sensor_point.point.z = 0.0;
+
+        geometry_msgs::msg::PointStamped transformed_point;
+        tf_buffer_->transform(sensor_point, transformed_point, "map");
+
+        RCLCPP_INFO(this->get_logger(), "Sensor position in map: (%.2f, %.2f, %.2f)",
+                    transformed_point.point.x, transformed_point.point.y, transformed_point.point.z);
+    } catch (tf2::TransformException &ex) {
+        RCLCPP_WARN(this->get_logger(), "Could not transform sensor point: %s", ex.what());
+    }
+}
+```
+📌 **`sensor_point`는 `base_link` 기준 좌표 → `map` 기준 좌표로 변환됨**  
+📌 **이제 센서 데이터를 `map` 좌표계에서 직접 사용할 수 있음**  
+
+---
+
+# **📌 정리**
+✅ **TF2는 로봇의 여러 좌표계를 관리하고 변환하는 라이브러리**  
+✅ **TF2 브로드캐스터(`tf2_ros::TransformBroadcaster`)는 좌표 변환을 네트워크에 전송**  
+✅ **TF2 리스너(`tf2_ros::TransformListener`)는 좌표 변환을 수신하고 변환을 수행**  
+✅ **ROS2의 `lookupTransform`과 `transform`을 활용하여 좌표 변환을 직접 수행할 수 있음**  
+
+📌 **이제 TF2를 활용하여 로봇의 센서 데이터를 다양한 좌표계에서 활용할 수 있다!** 🚀
+
+
+<br>
+<br>
+<br>
+
+## **📌 `tf_buffer_->transform()`이 실제로 어떤 변환을 수행하는지 이해하기 쉽게 설명하기**
+### **🛠️ 질문:**  
+위 코드에서 `tf_buffer_->transform(sensor_point, transformed_point, "map")`가 **어떻게 좌표 변환을 수행하는지** 쉽게 설명해줘.
+
+---
+
+## **✅ 1) TF2 변환이란?**
+📌 **TF2의 역할:**  
+- **센서, 로봇 본체(base_link), 지도(map) 등 여러 개의 좌표계(frame) 간의 관계를 저장하고 변환을 수행**함.  
+- `tf2_ros::Buffer`를 사용하여 **다른 프레임 기준으로 좌표를 변환할 수 있음**.  
+
+📌 **이 코드에서 `tf_buffer_->transform()`이 하는 일**  
+- `sensor_point`(센서가 `base_link` 기준으로 위치한 점)을  
+- `map`(전역 좌표계) 기준으로 변환하여  
+- `transformed_point`에 저장함.  
+
+---
+
+## **✅ 2) 상황을 그림으로 표현해보기**
+📌 **현재 로봇(`base_link`)의 위치가 `map` 기준으로 (10, 5)에 있음**  
+📌 **센서가 로봇(`base_link`)에서 0.5m 앞에 있음**  
+
+```
+[map 좌표계]
+   ↑ y
+   |
+10 +----------------- (map 기준 (10,5))
+   |      (base_link) 
+   |        ┌───────────┐  
+   |        │   🚗 로봇  │  센서(sensor_point)
+   |        └────○──────┘ → base_link 기준 (0.5, 0)
+   |                     → map 기준으로 (10.5, 5)
+   --------------------------------------------→ x
+```
+
+---
+
+## **✅ 3) 코드 실행 흐름**
+```cpp
+geometry_msgs::msg::PointStamped sensor_point;
+sensor_point.header.frame_id = "base_link";
+sensor_point.point.x = 0.5;
+sensor_point.point.y = 0.0;
+sensor_point.point.z = 0.0;
+```
+📌 **센서가 `base_link` 기준으로 0.5m 앞에 위치해 있음.**
+
+---
+
+```cpp
+geometry_msgs::msg::PointStamped transformed_point;
+tf_buffer_->transform(sensor_point, transformed_point, "map");
+```
+📌 **TF2는 `base_link` → `map` 변환을 자동으로 찾아 `transformed_point`를 계산함.**  
+📌 **결과적으로 `map` 기준으로 센서 좌표가 (10.5, 5, 0)으로 변환됨.**
+
+---
+
+```cpp
+RCLCPP_INFO(this->get_logger(), "Sensor position in map: (%.2f, %.2f, %.2f)",
+            transformed_point.point.x, transformed_point.point.y, transformed_point.point.z);
+```
+✅ **출력 예시:**  
+```
+Sensor position in map: (10.5, 5.0, 0.0)
+```
+📌 **즉, 센서의 위치를 `base_link` 기준이 아닌 `map` 기준으로 변환한 결과를 얻음.**
+
+---
+
+## **✅ 4) 코드 동작을 이해하기 쉽게 정리**
+1️⃣ **`base_link`의 현재 위치를 `map` 기준으로 찾음.** (예: `map`에서 (10,5))  
+2️⃣ **센서가 `base_link` 기준으로 (0.5, 0, 0) 위치에 있음.**  
+3️⃣ **TF2가 `base_link → map` 변환을 자동 계산하여 센서의 위치를 `map` 기준으로 변환.**  
+4️⃣ **출력된 `transformed_point`는 `map` 좌표계 기준의 센서 위치를 나타냄.**  
+
+📌 **이제 TF2가 여러 개의 좌표계 간 변환을 수행하는 원리를 쉽게 이해할 수 있다!** 🚀
+
+
 <br>
 <br>
 <br>
 <br>
 <br>
 <br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
+
+# **🔹 7. ROS2 C++ 고급 기능**
+> **목표:**  
+> - **ROS2 애플리케이션을 개발할 때 자주 사용되는 필수 기능을 익힌다.**  
+> - **ROS2 로깅 및 디버깅 방법을 배우고, Python `print()`와 `RCLCPP_INFO`를 비교한다.**  
+> - **ROS2 파라미터 서버(`rclcpp::Parameter`)를 활용하여 동적 파라미터 업데이트를 구현한다.**  
+> - **`std::fstream`을 활용하여 CSV, YAML, JSON 파일을 읽고 쓰는 방법을 익힌다.**  
+> - **헤더 파일(`hpp`)과 소스 파일(`cpp`)을 분리하여 구조적으로 깔끔한 ROS2 노드를 만든다.**  
+
+---
+
+# **✅ 7-1. ROS2 로깅 및 디버깅 (`RCLCPP_INFO`)**
+📌 **ROS2에서 `RCLCPP_INFO`, `RCLCPP_DEBUG`, `RCLCPP_WARN`, `RCLCPP_ERROR` 등의 로깅 기능을 활용하면 디버깅이 쉬워진다.**  
+📌 **Python의 `print()`와 비교하여 로깅 기능을 활용하는 방법을 배운다.**  
+
+## **🔹 1) Python의 `print()` vs C++의 `RCLCPP_INFO`**
+| 기능 | Python `print()` | C++ `RCLCPP_INFO` |
+|---|---|---|
+| 기본 출력 | `print("Hello")` | `RCLCPP_INFO(this->get_logger(), "Hello");` |
+| 디버깅 출력 | `print("Debug:", value)` | `RCLCPP_DEBUG(this->get_logger(), "Debug: %d", value);` |
+| 경고 메시지 | `print("Warning:", msg)` | `RCLCPP_WARN(this->get_logger(), "Warning: %s", msg.c_str());` |
+| 오류 메시지 | `print("Error:", err)` | `RCLCPP_ERROR(this->get_logger(), "Error: %s", err.c_str());` |
+
+---
+
+## **📌 2. ROS2 C++ 로깅 예제 (`logging_example`)**
+### **🔹 `logging_example.hpp` (헤더 파일)**
+```cpp
+#ifndef LOGGING_EXAMPLE_HPP_
+#define LOGGING_EXAMPLE_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+
+class LoggingExample : public rclcpp::Node {
+public:
+    LoggingExample();
+
+private:
+    void log_messages();
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+#endif  // LOGGING_EXAMPLE_HPP_
+```
+
+### **🔹 `logging_example.cpp` (소스 파일)**
+```cpp
+#include "logging_example.hpp"
+
+LoggingExample::LoggingExample() : Node("logging_example") {
+    timer_ = this->create_wall_timer(
+        std::chrono::seconds(2),
+        std::bind(&LoggingExample::log_messages, this)
+    );
+}
+
+void LoggingExample::log_messages() {
+    RCLCPP_INFO(this->get_logger(), "INFO: This is a normal log message.");
+    RCLCPP_DEBUG(this->get_logger(), "DEBUG: This is a debug message.");
+    RCLCPP_WARN(this->get_logger(), "WARN: This is a warning message.");
+    RCLCPP_ERROR(this->get_logger(), "ERROR: This is an error message.");
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<LoggingExample>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ 실행하면 2초마다 다양한 레벨의 로그 메시지가 출력됨.  
+✅ `--ros-args --log-level debug` 옵션을 추가하면 `DEBUG` 메시지도 볼 수 있음.  
+
+---
+
+# **✅ 7-2. ROS2 파라미터 서버 (`rclcpp::Parameter`)**
+📌 **ROS2의 `rclcpp::Parameter`를 활용하여 노드 실행 중에 값을 동적으로 변경할 수 있음.**  
+📌 **`rclcpp::ParameterEventHandler`를 사용하면 동적 파라미터 변경을 감지할 수 있음.**  
+
+## **📌 1. ROS2 C++ 파라미터 예제 (`parameter_example`)**
+### **🔹 `parameter_example.hpp` (헤더 파일)**
+```cpp
+#ifndef PARAMETER_EXAMPLE_HPP_
+#define PARAMETER_EXAMPLE_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+
+class ParameterExample : public rclcpp::Node {
+public:
+    ParameterExample();
+
+private:
+    void parameter_callback(const rclcpp::Parameter &param);
+    rclcpp::ParameterEventHandler param_event_handler_;
+};
+
+#endif  // PARAMETER_EXAMPLE_HPP_
+```
+
+### **🔹 `parameter_example.cpp` (소스 파일)**
+```cpp
+#include "parameter_example.hpp"
+
+ParameterExample::ParameterExample() : Node("parameter_example") {
+    this->declare_parameter("speed", 1.0);
+    param_event_handler_.add_parameter_callback(
+        "speed",
+        std::bind(&ParameterExample::parameter_callback, this, std::placeholders::_1)
+    );
+}
+
+void ParameterExample::parameter_callback(const rclcpp::Parameter &param) {
+    RCLCPP_INFO(this->get_logger(), "Parameter 'speed' changed: %.2f", param.as_double());
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<ParameterExample>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ 실행 후, 터미널에서 파라미터 변경 가능:
+```bash
+ros2 param set /parameter_example speed 2.5
+```
+✅ 변경하면 `"Parameter 'speed' changed: 2.5"` 출력됨.  
+
+---
+
+# **✅ 7-3. ROS2에서의 파일 입출력 (CSV, YAML, JSON)**
+📌 **ROS2에서 `std::fstream`을 활용하여 데이터 저장 및 불러오기**  
+📌 **CSV, YAML, JSON 파일을 읽고 쓰는 방법을 익힌다.**  
+
+## **📌 1. ROS2 C++ 파일 입출력 예제 (`file_io_example`)**
+### **🔹 `file_io_example.hpp` (헤더 파일)**
+```cpp
+#ifndef FILE_IO_EXAMPLE_HPP_
+#define FILE_IO_EXAMPLE_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include <fstream>
+#include <vector>
+
+class FileIOExample : public rclcpp::Node {
+public:
+    FileIOExample();
+
+private:
+    void save_data_to_csv();
+    void read_data_from_csv();
+};
+
+#endif  // FILE_IO_EXAMPLE_HPP_
+```
+
+### **🔹 `file_io_example.cpp` (소스 파일)**
+```cpp
+#include "file_io_example.hpp"
+
+FileIOExample::FileIOExample() : Node("file_io_example") {
+    save_data_to_csv();
+    read_data_from_csv();
+}
+
+void FileIOExample::save_data_to_csv() {
+    std::ofstream file("data.csv");
+    if (!file) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to open file for writing.");
+        return;
+    }
+    file << "Time,Speed,Position\n";
+    file << "1,2.5,10.0\n";
+    file << "2,3.0,15.0\n";
+    file.close();
+    RCLCPP_INFO(this->get_logger(), "Data saved to CSV.");
+}
+
+void FileIOExample::read_data_from_csv() {
+    std::ifstream file("data.csv");
+    if (!file) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to open file for reading.");
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        RCLCPP_INFO(this->get_logger(), "Read line: %s", line.c_str());
+    }
+    file.close();
+}
+
+int main(int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<FileIOExample>());
+    rclcpp::shutdown();
+    return 0;
+}
+```
+✅ 실행하면 `"data.csv"` 파일이 생성됨.  
+✅ 프로그램이 실행될 때 CSV 파일을 읽고 출력함.  
+
+---
+
+# **📌 정리**
+✅ **`RCLCPP_INFO`를 활용한 로깅 기법을 익혔다.**  
+✅ **ROS2 파라미터(`rclcpp::Parameter`)를 선언하고 변경하는 방법을 학습했다.**  
+✅ **파일 입출력(`std::fstream`)을 사용하여 CSV 데이터를 저장하고 읽는 방법을 배웠다.**  
+
+📌 **이제 ROS2 애플리케이션에서 로깅, 파라미터 관리, 파일 저장 기능을 추가할 수 있다!** 🚀
+
+
+
+
 <br>
 <br>
 <br>
