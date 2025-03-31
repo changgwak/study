@@ -1403,3 +1403,176 @@ Cartographer가 만든 binary 파일. 전체 pose graph, submap, sensor data 등
 - Parameter tuning 포인트?
 
 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+아래는 3가지 일부부 Cartographer 내부 핵심 모듈에 대한 **심화 설명**입니다.  
+Cartographer를 제대로 이해하고 튜닝하려면 이 부분을 잘 이해하는 게 매우 중요해요.
+
+---
+
+# ✅ 1. **Voxel Filter / Adaptive Voxel Filter**
+
+### 📌 목적:
+LIDAR 또는 Point Cloud는 매우 고해상도 데이터를 생성하기 때문에 그대로 처리하면 계산량이 과도해집니다.  
+이를 **공간적으로 압축**해서 처리 효율을 높이기 위해 Voxel Filter를 사용합니다.
+
+---
+
+### 📦 일반 Voxel Filter (Fixed Size)
+
+- **방식:** 3차원 공간을 일정 크기의 격자(= voxel)로 나누고, 각 voxel 안에 있는 포인트 중 **대표 1개만 남김**
+- 예: 0.05m voxel 필터 → 5cm x 5cm x 5cm 박스마다 포인트 1개만 유지
+- **장점:** 단순하고 빠름
+- **단점:** 고정 해상도 → 환경 변화에 민감하지 않음
+
+---
+
+### 🎯 Adaptive Voxel Filter
+
+- **차이점:** **포인트 개수, 거리, 분포**에 따라 **동적으로 필터 강도 조절**
+- **작동 방식 요약:**
+  - 포인트 수가 많을 때는 더 aggressive하게 필터링
+  - 포인트가 적거나 먼 곳이면 더 정밀하게 유지
+- 내부 파라미터 예시:
+  ```lua
+  adaptive_voxel_filter.max_length = 0.5  -- voxel 크기 최대
+  adaptive_voxel_filter.min_num_points = 200
+  adaptive_voxel_filter.max_range = 50.0
+  ```
+- **장점:** 성능과 정밀도 사이의 균형 제공
+- **당신의 경우:** nanoScan3 같이 비교적 고해상도 2D LIDAR에는 adaptive 필터가 **적절한 밀도 유지**에 매우 효과적입니다.
+
+---
+
+# ✅ 2. **Compute Constraints**
+
+### 📌 목적:
+**Pose Graph Optimization**에서 사용할 **Node ↔ Submap** 간의 관계를 계산하여,  
+위치 정렬 및 loop closure 최적화의 **제약 조건(Constraint)** 으로 활용합니다.
+
+---
+
+### ✨ INTRA-submap Constraint
+
+- **설명:** 하나의 submap 내부에서, 새로운 scan이 삽입된 위치에 대한 관계
+- **예시:** 지금 들어온 scan이 10번째 submap에 위치한 pose일 때,  
+  → 그 submap의 중심과 pose 간 상대 위치 관계를 계산
+
+---
+
+### 🔁 INTER-submap Constraint (Loop Closure)
+
+- **설명:** 오래전에 만들어진 submap과 현재 scan이 같은 위치일 수 있는지 비교 (loop detection)
+- **예시:** 로봇이 건물 한 바퀴를 돌고 다시 출발 지점으로 돌아온 경우,  
+  현재 scan을 과거 submap들과 비교하여 loop 여부 판단
+
+---
+
+### 📐 Constraint 구성 요소:
+
+각 constraint는 다음을 포함합니다:
+
+```plaintext
+constraint = {
+  submap_id = A,
+  node_id = B,
+  transform = relative_pose_AB,
+  information_matrix = weight (신뢰도),
+  type = INTRA / INTER
+}
+```
+
+---
+
+### 💡 작동 방식:
+
+- scan이 삽입되면 → 현재 위치의 node 생성
+- 해당 node가 포함될 submap들을 선택
+- scan matching 수행 → matching score 기반 constraint 생성
+- loop closure 시에는 수많은 이전 submap과 scan 비교 → INTER 제약 생성
+
+---
+
+### 🔧 참고 파라미터 (`pose_graph.lua`)
+
+```lua
+POSE_GRAPH.constraint_builder.min_score = 0.55  -- scan matching 점수 기준
+POSE_GRAPH.constraint_builder.loop_closure_translation_weight = 1e5
+POSE_GRAPH.constraint_builder.loop_closure_rotation_weight = 1e3
+```
+
+---
+
+# ✅ 3. **Sparse Pose Adjustment**
+
+### 📌 목적:
+Pose Graph에서 구성된 모든 노드와 constraint를 기반으로,  
+전체 경로가 부드럽고 일관되게 정렬되도록 **전역 최적화(global optimization)** 수행
+
+---
+
+### 🔧 사용하는 알고리즘:
+
+- **Ceres Solver** 기반의 nonlinear least squares optimization
+- 각 pose 간 상대 위치, 회전, IMU drift 등을 고려해 전체 pose를 다시 계산
+
+---
+
+### 📐 수학적 최적화 문제:
+
+```math
+argmin_x ∑_i  ρ_i (‖T_i(x) - T_i^measured‖² * Information_i)
+```
+
+- `T_i(x)`: 최적화하려는 pose 간 상대 위치
+- `T_i^measured`: scan matching에서 측정한 위치
+- `ρ_i`: Huber loss (outlier 억제)
+- `Information_i`: weight matrix (제약 신뢰도)
+
+---
+
+### 🧠 왜 Sparse인가?
+
+- 모든 노드를 연결하면 계산량이 폭증
+- 대신 **가까운 노드들만 연결**해서 sparse한 graph 구성 → 계산 효율 ↑
+
+---
+
+### 결과:
+- loop closure 발생 시 → 전체 pose 위치가 조정됨
+- `.pbstream` 파일에 정렬된 맵 저장
+
+---
+
+### 📌 파라미터 예시:
+
+```lua
+POSE_GRAPH.optimize_every_n_nodes = 90
+POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 50
+POSE_GRAPH.optimization_problem.huber_scale = 1e1
+```
+
+---
+
+## 🧾 정리표
+
+| 구성 요소 | 설명 | 파라미터 튜닝 포인트 |
+|-----------|------|----------------------|
+| **Voxel Filter** | Point cloud를 간략화 | `max_length`, `min_num_points` |
+| **Compute Constraints** | 노드 ↔ submap 관계 생성 | `min_score`, `sampling_ratio` |
+| **Sparse Pose Adjustment** | 전체 경로 최적화 | `optimize_every_n_nodes`, `max_num_iterations` |
+
+---
+
+필요하시면 다음도 알려드릴 수 있어요:
+
+- loop closure가 잘 안 되는 환경에서 constraint 튜닝 전략
+- adaptive voxel filter가 localization에 미치는 영향 실험 예시
+- pose graph 상태를 `.pbstream` 없이 시각화하는 방법
+
+
