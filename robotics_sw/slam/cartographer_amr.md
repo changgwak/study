@@ -1580,3 +1580,135 @@ POSE_GRAPH.optimization_problem.huber_scale = 1e1
 - pose graph 상태를 `.pbstream` 없이 시각화하는 방법
 
 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+
+
+ "Compute Constraints"은 **Cartographer에서 가장 핵심적인 개념 중 하나**인데, 조금만 감을 잡으면 굉장히 직관적으로 이해할 수 있어요.  
+아래에서 **비유**, **시각적 이미지**, **실제 로봇 상황**에 맞춰서 하나하나 설명해드릴게요.
+
+---
+
+## ✅ "Compute Constraints"를 직관적으로 이해하기
+
+### 📌 개념을 먼저 쉽게 말하면:
+> "**새로운 위치가 들어왔을 때, 이 위치가 예전의 어떤 submap(작은 지도 조각)과 어떤 관계인지**를 계산해서  
+> 나중에 전체 경로를 다시 정리할 수 있게 하는 작업"입니다.
+
+---
+
+## 🧩 먼저, 필요한 용어 감 잡기
+
+| 용어 | 의미 | 비유 |
+|------|------|------|
+| **Node** | 로봇의 특정 시간의 위치 | 로봇이 남긴 발자국 |
+| **Submap** | 여러 scan이 모여 만들어진 작은 지역 지도 | 로봇이 만든 조그만 스케치북 한 장 |
+| **Constraint** | Node와 Submap 간의 상대 위치 관계 | “이 발자국은 이 스케치북의 오른쪽 위쯤 있었어” 같은 정보 |
+
+---
+
+## ✨ 1. **INTRA-submap Constraint** – 현재 활동 중인 submap과의 관계
+
+### ✅ 언제 생기나?
+- 로봇이 새로운 scan을 받을 때 (예: LIDAR 한 바퀴 돈 후)
+- 이 scan이 **지금 활동 중인 submap**에 들어감
+
+### ✅ 무슨 일이 일어남?
+- 이 scan으로 만든 위치 정보(Node)를 저장함  
+- 그리고 그 Node와 submap 사이의 **상대 위치 관계**를 계산함  
+  → “너는 submap 중심에서 0.3m 오른쪽, 5도 정도 회전된 위치에 있었구나!”
+
+### ✅ 왜 필요하냐면?
+- 나중에 submap이 정렬될 때 → Node도 같이 자연스럽게 움직이기 때문
+
+---
+
+### 📌 비유:
+- 로봇이 지금 submap을 그리는 중 = **노트북에 그림 그리는 중**
+- 지금 받은 scan = 새로운 선 하나 그림
+- “이 선은 이 노트북의 어디에 그려졌는가?”를 기록해 두는 게 INTRA constraint!
+
+---
+
+## 🔁 2. **INTER-submap Constraint (Loop Closure)** – 과거 submap과의 관계
+
+### ✅ 언제 생기나?
+- 로봇이 오래 움직여서 **지금 위치가 예전에 방문했던 장소 근처**일 수 있음
+
+### ✅ 무슨 일이 일어남?
+- 현재 위치(Node)의 scan을 과거 submap들과 비교함  
+  → “혹시 지금 이 풍경… 예전에 여기 지나갔던 그곳 아니야?”
+
+- 잘 맞는 과거 submap이 있다면  
+  → “지금 위치는 옛날 submap 중심에서 0.1m 옆이네”  
+  → 그 관계를 **INTER constraint**로 저장함
+
+### ✅ 왜 중요하냐면?
+- 전체 pose graph에서 drift가 생겼을 때,  
+  loop closure가 **지도 퀄리티를 크게 개선**해주기 때문!
+
+---
+
+### 📌 비유:
+- 로봇이 한 바퀴 돌고 원래 위치로 돌아옴
+- “여기 전에 왔던 곳 같은데?” 하면서 노트북 예전 페이지를 꺼냄
+- 그 예전 노트와 지금 위치의 관계를 연결하는 게 INTER constraint!
+
+---
+
+## 🔄 전체 작동 흐름 정리
+
+```plaintext
+1. 새로운 scan 들어옴 → node 생성
+2. 현재 submap에 scan 삽입됨
+3. INTRA constraint 생성 (현재 submap과의 관계)
+4. (주기적으로) 이전 submap들과도 scan matching 시도
+5. 잘 맞는 과거 submap 발견 → INTER constraint 생성
+6. 나중에 Ceres Solver가 이 모든 constraint로 전체 경로 정렬
+```
+
+---
+
+## 🎯 예시로 전체 흐름 이해하기
+
+### 📍상황:
+
+- 로봇이 직진하며 submap 0, 1, 2 생성
+- submap 3에서 유턴
+- 다시 submap 0 근처로 돌아옴
+
+### 🔎 일어나는 일:
+
+| 시점 | 동작 | 설명 |
+|------|------|------|
+| scan 1 | submap 0에 들어감 | INTRA 제약 생성 |
+| scan 20 | submap 2에 들어감 | INTRA 제약 생성 |
+| scan 35 | submap 0 근처 | INTER 제약 시도 → 잘 맞음 |
+| → | loop closure 발생 | INTER 제약 생성됨 |
+
+→ 이후 **Sparse Pose Adjustment** 단계에서 전체 pose들이 조정되며 map 품질 향상!
+
+---
+
+## ✅ 요약
+
+| 항목 | INTRA Constraint | INTER Constraint |
+|------|------------------|------------------|
+| 대상 | 현재 submap ↔ node | 과거 submap ↔ 현재 node |
+| 역할 | 현재 submap 내 위치 기록 | loop closure 탐지 및 보정 |
+| 빈도 | 자주 생성 | 가끔 (주기적으로 탐색) |
+| 효과 | submap 내부 정렬 유지 | 전체 map drift 보정 |
+
+---
+
+필요하시면 다음도 설명드릴 수 있어요:
+- scan matching score 기반으로 INTER constraint 채택되는 기준
+- loop closure 실패 원인 & 해결법
+- `pose_graph.constraint_builder` 관련 튜닝 팁
+
