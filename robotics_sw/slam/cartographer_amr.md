@@ -1260,6 +1260,10 @@ Cartographer가 만든 binary 파일. 전체 pose graph, submap, sensor data 등
 ![image](https://github.com/user-attachments/assets/de228c2f-0b2f-4e99-97c2-a2e37d5e3c7f)
 
 <br>
+
+[](https://ros2-industrial-workshop.readthedocs.io/en/latest/_source/navigation/ROS2-Cartographer.html)
+
+<br>
 <br>
 
 해당 이미지는 Cartographer SLAM의 핵심 구조를 시각적으로 잘 정리한 **Technical Overview** 다이어그램입니다.  
