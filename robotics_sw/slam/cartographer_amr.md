@@ -1251,3 +1251,155 @@ Cartographer가 만든 binary 파일. 전체 pose graph, submap, sensor data 등
 - Ceres Solver가 최적화할 때 사용하는 residual 식
 - RTCSM vs Ceres Scan Matcher 비교
 
+<br>
+<br>
+<br>
+<br>
+<br>
+
+![image](https://github.com/user-attachments/assets/de228c2f-0b2f-4e99-97c2-a2e37d5e3c7f)
+
+<br>
+<br>
+
+해당 이미지는 Cartographer SLAM의 핵심 구조를 시각적으로 잘 정리한 **Technical Overview** 다이어그램입니다.  
+이 다이어그램을 기반으로 각 모듈의 작동 원리를 **AMR에서의 실제 흐름**에 맞춰 상세하게 설명드릴게요.
+
+---
+
+## 🧭 전체 구조 요약
+
+해당 그림은 Cartographer의 작동 과정을 다음 3개의 영역으로 나눠 설명합니다:
+
+1. **Input Sensor Data** (입력 데이터)
+2. **Local SLAM** (실시간 위치 추정 및 submap 생성)
+3. **Global SLAM** (백그라운드에서 pose graph 최적화 수행)
+
+---
+
+## ✅ 1. Input Sensor Data
+
+| 센서 종류 | 설명 |
+|-----------|------|
+| **Range Data** | LIDAR 또는 Point Cloud (`/scan`, `/points2`) |
+| **Odometry Pose** | 바퀴 odometry or EKF 결과 (`/odom`) |
+| **IMU Data** | 가속도, 각속도 (`/imu/data`) |
+| **Fixed Frame Pose** | 보통 GPS 또는 초기 위치 지정 frame (보통은 사용 X) |
+
+→ 이 데이터들은 **PoseExtrapolator** 모듈에 입력되어 시간 간격을 보정하고, 예측 위치 추정에 사용됩니다.
+
+---
+
+## ✅ 2. Local SLAM (실시간 SLAM)
+
+### 🧩 주요 구성 요소 설명:
+
+---
+
+### ◾ **Voxel Filter / Adaptive Voxel Filter**
+- LIDAR나 Point Cloud의 밀도를 줄여서 연산량을 줄임
+- Adaptive Voxel Filter는 상황에 따라 더 정교한 필터링 수행
+
+---
+
+### ◾ **PoseExtrapolator**
+- IMU + Odometry 데이터를 기반으로 현재 위치를 예측
+- Scan Matching 이전 단계에서 초기 위치 추정값 제공
+
+---
+
+### ◾ **Scan Matching (Ceres Scan Matcher)**
+- 예측 위치를 기반으로 실제 scan 데이터를 기존 submap과 비교하여 최적 위치 계산
+- Ceres 기반의 고정밀 scan matcher
+- 결과 → `PoseObservation`
+
+---
+
+### ◾ **Motion Filter**
+- 로봇이 거의 움직이지 않거나 동일한 위치에 있을 경우, 계산 생략
+- 너무 작은 움직임은 `Dropped` 처리 → 불필요한 submap 업데이트 방지
+
+---
+
+### ◾ **Submaps / Voxel Grid Update**
+- 일정 거리마다 submap이라는 로컬 맵 조각을 생성
+- 필터를 통과한 scan은 현재 submap에 삽입되어 누적됨
+- 보통 동시에 2개의 submap이 활성화됨 (active submaps)
+
+---
+
+### ◾ **InsertionResult**
+- scan이 submap에 삽입되면 그 시점의 정보(time, pose, range data 등)를 저장
+- 이 정보는 이후 **Global SLAM**에서 pose graph를 구성할 때 사용됨
+
+---
+
+## ✅ 3. Global SLAM (백그라운드 최적화)
+
+> 이 파트는 실시간이 아닌, 별도의 스레드로 작동합니다. 특히 loop closure나 trajectory 정렬을 담당합니다.
+
+---
+
+### ◾ **Compute Constraints**
+- 노드(node)와 submap 사이의 관계(제약 조건)를 계산  
+  - **INTRA**: 동일 submap 내의 제약 (일반 위치 관계)
+  - **INTER**: loop closure 제약 (과거 submap과의 관계)
+
+---
+
+### ◾ **Sparse Pose Adjustment**
+- pose graph 전체를 구성하고 최적화
+- Ceres Solver를 이용해 pose 간 오차를 최소화하는 방향으로 경로 정렬
+
+---
+
+### ◾ **Extrapolate all poses added later**
+- 이전 최적화 이후에 추가된 node들의 위치 보정
+
+---
+
+## 🔄 전체 흐름 요약
+
+```plaintext
+[센서 입력] → [Extrapolation + Filtering] 
+→ [Scan Matching + Motion Filter] 
+→ [Submap 삽입 (활성 상태)] 
+→ [InsertionResult 저장]
+→ [Global SLAM이 Constraints 계산 → Pose Graph Optimization 수행]
+```
+
+---
+
+## 📍 당신의 AMR 시스템에 적용해 보면?
+
+| 모듈 | 당신의 시스템 |
+|------|---------------|
+| IMU Data | `wit_imu_driver` + `imu_filter_madgwick` |
+| Odometry | `robot_localization (EKF)` 결과 |
+| Range Data | SICK nanoScan3의 `/scan` |
+| Local SLAM | Mapping 시 작동, 주행 시에는 off |
+| Global SLAM | Mapping 시 백그라운드로 작동, 주행 시에는 꺼짐 |
+| Pure Localization | `.pbstream` 로딩 + scan과 submap만 비교하여 위치 추정 |
+
+---
+
+## ✅ 핵심 개념 연결 요약
+
+| 개념 | 그림 상 위치 | 설명 |
+|------|--------------|------|
+| **Ceres Scan Matcher** | Local SLAM - Scan Matching | 실시간 위치 추정 |
+| **Pose Graph** | Global SLAM | 모든 node/submap의 관계 |
+| **Ceres Solver** | Sparse Pose Adjustment 내부 | pose graph 최적화 |
+| **Submap** | Submaps + Voxel Grid Update | 로컬 맵 조각 |
+| **InsertionResult** | Submap 삽입 결과 | 이후 global 최적화용 자료 |
+
+---
+
+필요하시면 이 그림을 기반으로 하는 **PDF 슬라이드**, 또는 각 모듈에 번호 붙여서 단계별 설명 자료도 만들어드릴 수 있어요.  
+다음으로 설명해드릴까요?
+
+- pure localization 시 위 구조에서 어떤 부분만 작동하는지?
+- 각 박스별 내부 알고리즘 예시 (예: scan matching 수식)?
+- Parameter tuning 포인트?
+
+
