@@ -113,7 +113,7 @@ Cartographer는 ROS 메시지를 내부 포맷으로 바꿔야 처리가 가능�
 **시스템 구성:**
 - `wit_imu_driver` + `imu_filter_madgwick` → `/imu/data`로 필터링된 orientation 제공
 - `roboteq_diff_driver` → `/wheel/odometry` 제공
-- `robot_localization (EKF)` → `/odometry/filtered` 제공 → Cartographer에 입력
+- `robot_localization (EKF)` → `/odometry/filtered` 제공 → Cartographer에 입력 (odom raw data가 cartographer에 전달되는 것으로 알고 있음.)
 - `SICK nanoScan3` → `/scan` → LaserScan 입력
 
 > `cartographer_ros`에서는 이 모든 토픽을 `.lua`에서 지정하여 처리합니다.
