@@ -1449,7 +1449,7 @@ LIDAR 또는 Point Cloud는 매우 고해상도 데이터를 생성하기 때문
   adaptive_voxel_filter.max_range = 50.0
   ```
 - **장점:** 성능과 정밀도 사이의 균형 제공
-- **당신의 경우:** nanoScan3 같이 비교적 고해상도 2D LIDAR에는 adaptive 필터가 **적절한 밀도 유지**에 매우 효과적입니다.
+- **시스템 구성:** nanoScan3 같이 비교적 고해상도 2D LIDAR에는 adaptive 필터가 **적절한 밀도 유지**에 매우 효과적입니다.
 
 ---
 
