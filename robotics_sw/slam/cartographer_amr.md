@@ -1879,3 +1879,92 @@ TRAJECTORY_BUILDER_2D.max_range = 15.0
 
 
 <br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+# POSE_GRAPH.constraint_builder.min_score 와 POSE_GRAPH.constraint_builder.global_localization_min_score 차이
+
+아주 좋은 질문이에요! 이 두 값은 Cartographer에서 **"loop closure"나 "scan matching이 잘 맞는지 판단하는 기준점"** 으로 쓰이는데,  
+용도는 비슷하지만 **적용되는 상황이 다릅니다.**
+
+---
+
+## ✅ 요약부터!
+
+| 파라미터 | 언제 쓰이나? | 예시 상황 | 기본 값 역할 |
+|----------|--------------|-----------|---------------|
+| `min_score` | 일반적인 loop closure, INTER constraint 생성 시 | 주행 중, 과거 submap과 비교할 때 | **“이 정도는 돼야 제약 생성”** |
+| `global_localization_min_score` | **pure localization mode 등**에서 위치 찾을 때 | 맵 로드 후 `/initialpose` 없이 localization할 때 | **“이 정도는 돼야 맵 안에서 위치 인식”** |
+
+---
+
+## 📌 직관적으로 이해하기
+
+### 🔹 `min_score = 0.55`
+> 주행 중 loop closure 시도할 때  
+> “이 scan과 저 submap은 55점 이상 비슷하면 같은 장소라고 인정할게.”
+
+- INTER constraint 생성 기준
+- scan과 submap을 비교해서, 이 점수보다 높으면 constraint 추가함
+
+---
+
+### 🔹 `global_localization_min_score = 0.6`
+> **초기 위치를 전혀 모를 때**,  
+> 예: `.pbstream`만 로딩하고 `/initialpose`도 없이 시작했을 때  
+> “맵 전체에서 지금 위치를 찾는데, 60점 이상 비슷해야 여기라고 믿을 수 있어.”
+
+- 전역 localization 시 사용
+- 특히 **pure localization 모드**에서 `/initialpose`가 없을 때 자동 위치 추정에 사용됨
+- 더 **보수적인 기준** (보통 `min_score`보다 높게 설정)
+
+---
+
+## 🧭 예시로 정리해 볼게요
+
+### 📍 예제 1: 일반 주행 중 loop closure
+- 로봇이 과거 submap 근처에 도달
+- scan과 submap 비교 → 0.58점 나옴  
+- `min_score = 0.55`니까 → **INTER constraint 생성됨**
+
+✅ 사용된 기준: `min_score`
+
+---
+
+### 📍 예제 2: pure localization 상태에서 맵만 있고 `/initialpose` 없이 시작
+- Cartographer가 scan을 받고, 전체 맵에서 비슷한 submap 탐색
+- scan과 submap 비교 → 0.58점 나옴  
+- `global_localization_min_score = 0.6`인데 점수가 낮음  
+→ **위치 인식 실패**, 위치 못 잡고 떠다님
+
+✅ 사용된 기준: `global_localization_min_score`
+
+---
+
+## ✅ 실전 팁
+
+| 상황 | 추천 설정 |
+|------|------------|
+| 일반 SLAM loop closure 잘 안 됨 | `min_score = 0.50~0.55` |
+| pure localization 위치 못 잡음 | `global_localization_min_score = 0.55~0.58` |
+
+⚠️ 단, 너무 낮추면 잘못된 loop 생성 가능 → **맵 왜곡 위험**!
+
+---
+
+## ✅ 결론 요약
+
+| 항목 | `min_score` | `global_localization_min_score` |
+|------|-------------|----------------------------------|
+| 적용 상황 | 일반 loop closure | 처음 위치를 찾는 global localization |
+| 쓰이는 시점 | INTER 제약 생성 | 초기 위치 탐색 |
+| 값이 낮으면? | loop closure 잘 됨, 그러나 오류 가능성 ↑ | 위치는 잘 찾음, 그러나 오인식 위험 ↑ |
+
+---
+
+필요하시면 scan matching score 로그 출력 방법이나 Rviz에서 INTER constraint 보이는 방법도 알려드릴게요!  
