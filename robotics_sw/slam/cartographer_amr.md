@@ -1889,7 +1889,7 @@ TRAJECTORY_BUILDER_2D.max_range = 15.0
 
 # POSE_GRAPH.constraint_builder.min_score 와 POSE_GRAPH.constraint_builder.global_localization_min_score 차이
 
-아주 좋은 질문이에요! 이 두 값은 Cartographer에서 **"loop closure"나 "scan matching이 잘 맞는지 판단하는 기준점"** 으로 쓰이는데,  
+이 두 값은 Cartographer에서 **"loop closure"나 "scan matching이 잘 맞는지 판단하는 기준점"** 으로 쓰이는데,  
 용도는 비슷하지만 **적용되는 상황이 다릅니다.**
 
 ---
