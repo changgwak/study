@@ -1182,7 +1182,6 @@ Cartographer가 만든 binary 파일. 전체 pose graph, submap, sensor data 등
 <br>
 
 
-좋은 질문이에요!  
 **Ceres Solver**와 **Ceres Scan Matcher**는 이름은 비슷하지만 **용도와 사용 맥락이 서로 다릅니다.**  
 둘 다 Google의 [Ceres Solver 라이브러리](http://ceres-solver.org)를 기반으로 하지만, Cartographer 내부에서 **서로 다른 역할**을 합니다.
 
