@@ -1712,3 +1712,170 @@ POSE_GRAPH.optimization_problem.huber_scale = 1e1
 - loop closure 실패 원인 & 해결법
 - `pose_graph.constraint_builder` 관련 튜닝 팁
 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+
+
+
+
+이제 **loop closure**의 핵심인 **scan matching score 기반의 INTER constraint 채택 기준**과  
+**loop closure가 실패하는 원인 및 해결법**에 대해 **실전 중심으로** 자세히 설명드릴게요.
+
+---
+
+# ✅ 1. **INTER constraint 채택 기준 – scan matching score 기반**
+
+### 📌 핵심 개념
+Cartographer는 loop closure를 하기 위해  
+**현재 scan ↔ 과거 submap**을 비교하여 얼마나 잘 맞는지 평가합니다.
+
+이때 사용하는 지표가 바로:
+
+> **Scan Matching Score (scan_match_score)**  
+> → 현재 scan이 과거 submap과 **얼마나 모양이 비슷한가**를 나타내는 값 (0.0 ~ 1.0)
+
+---
+
+### 🧠 작동 방식 요약:
+
+1. **현재 노드(Node)의 scan**과  
+   **과거 submap 후보들**을 비교함  
+2. 각 비교에 대해 **Scan Matching** 수행 (RTCSM + Ceres Scan Matcher)
+3. **score가 특정 임계값 이상**이면 → INTER constraint 생성
+
+---
+
+### 📌 중요한 파라미터 (`pose_graph.lua`)
+
+```lua
+POSE_GRAPH.constraint_builder.min_score = 0.55
+POSE_GRAPH.constraint_builder.global_localization_min_score = 0.6
+```
+
+| 파라미터 | 의미 |
+|----------|------|
+| `min_score` | 일반 INTER constraint 생성을 위한 최소 점수 |
+| `global_localization_min_score` | pure localization 등에서 사용되는 더 높은 기준점 |
+
+- 일반적으로 0.55~0.65 사이로 설정
+- 점수가 높을수록 false positive loop closure를 줄일 수 있지만,  
+  **loop closure를 찾기 어려워질 수 있음**
+
+---
+
+### ✅ 직관적인 기준
+
+| score 값 | 해석 |
+|----------|------|
+| 0.8 이상 | 매우 잘 맞음 → 확실한 loop |
+| 0.6~0.8 | 유사한 위치일 가능성 높음 → INTER 생성됨 |
+| 0.4~0.6 | 애매 → 보통 무시됨 |
+| 0.3 이하면 | 완전히 다른 위치 → 무시됨 |
+
+---
+
+# 🚨 2. Loop Closure 실패 원인 & 해결법
+
+---
+
+## ❌ 실패 원인 1. **scan match score가 낮음**
+
+### 🔍 원인:
+- 과거 submap과 현재 scan의 형태가 너무 다름
+- submap이 drift되어 있어서 잘 안 맞음
+
+### ✅ 해결법:
+- `min_score`를 낮춰보되 **0.45 이하로는 신중하게**
+- `adaptive_voxel_filter.max_length` 줄이기 → scan 밀도 유지
+- IMU drift 최소화 → `imu_filter_madgwick` 파라미터 튜닝
+
+---
+
+## ❌ 실패 원인 2. **submap이 정확하지 않음**
+
+### 🔍 원인:
+- submap이 너무 빠르게 만들어짐 (데이터 부족)
+- scan이 motion distortion 상태로 들어옴 (빠르게 움직이는 중)
+
+### ✅ 해결법:
+- `submap.num_range_data` 증가 (더 많은 scan으로 submap 생성)
+- `motion_filter` 기준 시간 늘리기 → 고속 움직임 중 scan 무시
+- scan 시간 보정 기능 활성화 (`TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = true`)
+
+---
+
+## ❌ 실패 원인 3. **INTER constraint 생성 간격이 너무 넓음**
+
+### 🔍 원인:
+- loop closure 시도 주기가 너무 김
+- `sampling_ratio`가 너무 낮아서 후보를 무시함
+
+### ✅ 해결법:
+```lua
+POSE_GRAPH.constraint_builder.sampling_ratio = 0.1  -- 기본값
+```
+→ 0.1 → 10%만 검사함  
+→ 0.3 이상으로 높이면 더 많은 비교 수행
+
+단, **CPU 사용량 증가**에 유의!
+
+---
+
+## ❌ 실패 원인 4. **scan range 제한**
+
+### 🔍 원인:
+- `min_range`, `max_range` 설정이 너무 좁아 scan이 잘림
+- submap과 비교할 만한 유효 scan 포인트가 부족함
+
+### ✅ 해결법:
+```lua
+TRAJECTORY_BUILDER_2D.min_range = 0.2
+TRAJECTORY_BUILDER_2D.max_range = 15.0
+```
+→ nanoScan3는 보통 10~15m까지 활용 가능
+
+---
+
+## ❌ 실패 원인 5. **환경 자체의 반복성 (Ambiguity)**
+
+### 🔍 원인:
+- 복도, 회전문, 반복된 기둥 구조 등 → 서로 비슷한 scan
+- 잘못된 위치에 INTER constraint가 생기면 “false loop closure”
+
+### ✅ 해결법:
+- **scan match score를 높게 유지** (`min_score = 0.65`)
+- `loop_closure_translation_weight`, `rotation_weight`를 적절히 조정해서 제약 강도 제한
+- `use_landmarks = true` 등의 추가 constraint 도입
+
+---
+
+## ✅ Loop Closure 디버깅 팁
+
+- `ros2 topic echo /trajectory_node_list`에서 loop edge 생성 여부 확인
+- Rviz의 `loop closure` edge 표시 기능 사용
+- `scan matching score` 로그 출력 확인 (Cartographer 소스 수정 필요)
+
+---
+
+## ✅ 마무리 요약표
+
+| 항목 | 실패 원인 | 해결 방법 |
+|------|-----------|-----------|
+| Score 낮음 | scan mismatch | `min_score` ↓, scan density ↑ |
+| Submap 부정확 | scan 부족, 빠른 이동 | scan 수 증가, motion filter 조정 |
+| 탐색 부족 | sampling ratio ↓ | `sampling_ratio` ↑ |
+| Scan 유효 범위 | range 제한 | `min/max_range` 조정 |
+| 환경 유사 | 반복 구조 | `min_score` ↑, weight 조정 |
+
+---
+
+이제 loop closure 실패가 왜 일어나는지, 그리고 어떻게 해결할 수 있는지 감이 확 오셨을 거예요.
+
+
+<br>
