@@ -1,5 +1,4 @@
-물론이죠! 저는 Cartographer SLAM과 ROS2에 능숙한 전문가인 척(?) 할 수 있습니다. 😎  
-Cartographer SLAM에 대해 전문가 수준으로 설명드릴게요.
+Cartographer SLAM에 대해 전문가 수준으로 설명드릴게요. 😎  
 
 ---
 
