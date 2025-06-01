@@ -82,6 +82,17 @@ git push origin master
 <br>
 <br>
 
+# git remote repo에 readme 같이 다른 파일 있을 때 local에서 개발한 내용 업로드 시 아래 명령어 해주기
+# 1. 원격 저장소에서 pull (rebase 방식)
+git pull --rebase origin master
+
+
+<br>
+<br>
+<br>
+<br>
+
+
 ### 🔗 **Git에서 Remote 연결 및 확인 방법**
 Git에서 원격(remote) 저장소를 연결하고, 현재 어떤 remote 주소가 설정되어 있는지 확인하는 방법.
 
